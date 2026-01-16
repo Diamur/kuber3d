@@ -7,6 +7,7 @@ namespace kuber3d
     public partial class FormMain : Form
     {
         private GLView? _view;
+        private bool _is3D = false;
 
         public FormMain()
         {
@@ -16,24 +17,44 @@ namespace kuber3d
             Width = 1400;
             Height = 900;
 
-            // 3D не стартуем сразу
-            // Стартуем только по кнопке
-            btnStart3D.Click += (_, __) => Start3D();
+            btnStart3D.Text = "3D";
+            btnStart3D.Click += (_, __) => Toggle3D();
+        }
+
+        private void Toggle3D()
+        {
+            if (!_is3D)
+                Start3D();
+            else
+                Stop3D();
         }
 
         private void Start3D()
         {
-            if (_view != null) return; // уже запущено
+            if (_view != null) return;
 
             _view = new GLView
             {
                 Dock = DockStyle.Fill
             };
 
-            pnlHost.Controls.Clear();
-            pnlHost.Controls.Add(_view);
+            pnlViewport.Controls.Clear();
+            pnlViewport.Controls.Add(_view);
 
-            btnStart3D.Enabled = false; // чтобы не плодить вьюхи
+            _is3D = true;
+            btnStart3D.Text = "Stop";
+        }
+
+        private void Stop3D()
+        {
+            if (_view == null) return;
+
+            pnlViewport.Controls.Remove(_view);
+            _view.Dispose();
+            _view = null;
+
+            _is3D = false;
+            btnStart3D.Text = "3D";
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
