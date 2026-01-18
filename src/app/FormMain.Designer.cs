@@ -52,14 +52,14 @@
             pnlTop.Dock = DockStyle.Top;
             pnlTop.Location = new Point(0, 0);
             pnlTop.Name = "pnlTop";
-            pnlTop.Size = new Size(1130, 100);
+            pnlTop.Size = new Size(896, 100);
             pnlTop.TabIndex = 0;
             // 
             // btnStart3D
             // 
             btnStart3D.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnStart3D.BackColor = SystemColors.ButtonHighlight;
-            btnStart3D.Location = new Point(1058, 21);
+            btnStart3D.Location = new Point(824, 21);
             btnStart3D.Name = "btnStart3D";
             btnStart3D.Size = new Size(60, 60);
             btnStart3D.TabIndex = 2;
@@ -107,8 +107,8 @@
             splitMain.Panel2.Controls.Add(pnlViewport);
             splitMain.Panel2.RightToLeft = RightToLeft.No;
             splitMain.Panel2MinSize = 360;
-            splitMain.Size = new Size(1130, 567);
-            splitMain.SplitterDistance = 240;
+            splitMain.Size = new Size(896, 350);
+            splitMain.SplitterDistance = 190;
             splitMain.TabIndex = 1;
             // 
             // tvScene
@@ -116,7 +116,7 @@
             tvScene.Dock = DockStyle.Fill;
             tvScene.Location = new Point(0, 0);
             tvScene.Name = "tvScene";
-            tvScene.Size = new Size(240, 567);
+            tvScene.Size = new Size(190, 350);
             tvScene.TabIndex = 0;
             // 
             // pnlViewport
@@ -124,14 +124,14 @@
             pnlViewport.Dock = DockStyle.Fill;
             pnlViewport.Location = new Point(0, 0);
             pnlViewport.Name = "pnlViewport";
-            pnlViewport.Size = new Size(886, 567);
+            pnlViewport.Size = new Size(702, 350);
             pnlViewport.TabIndex = 0;
             // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1130, 667);
+            ClientSize = new Size(896, 450);
             Controls.Add(splitMain);
             Controls.Add(pnlTop);
             Icon = (Icon)resources.GetObject("$this.Icon");

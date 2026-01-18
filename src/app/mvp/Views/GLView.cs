@@ -19,6 +19,10 @@ using kuber3d.Contracts;
 // OpenTK WinForms GLControl
 using OpenTK.WinForms;
 
+// OpenGL viewport (на ResizeViewport)
+using OpenTK.Graphics.OpenGL4;
+using WindowsTimer = System.Windows.Forms.Timer;
+
 namespace kuber3d.Views
 {
     /// <summary>
@@ -34,7 +38,7 @@ namespace kuber3d.Views
 
         // Таймер для "постоянной" отрисовки.
         // Для MVP так проще и на конференции выглядит стабильно.
-        private readonly Timer _timer;
+        private readonly WindowsTimer _timer;
 
         // Флаг, чтобы не вызывать Render() пока контрол не готов
         private bool _isLoaded;
@@ -53,33 +57,116 @@ namespace kuber3d.Views
 
             // 2) Настраиваем таймер рендера
             // 60 FPS примерно => 16 мс (можно поменять)
-            _timer = new Timer { Interval = 16 };
+            _timer = new WindowsTimer { Interval = 16 };
             _timer.Tick += (_, _) => RequestRender();
 
             // 3) Подписываемся на события GLControl
             _gl.Load += OnGlLoad;
             _gl.Paint += OnGlPaint;
             _gl.Resize += OnGlResize;
-
-            // 4) Пробрасываем мышь наружу (Presenter/MouseController будут слушать это)
-            _gl.MouseDown += (s, e) => MouseDown?.Invoke(s, e);
-            _gl.MouseUp += (s, e) => MouseUp?.Invoke(s, e);
-            _gl.MouseMove += (s, e) => MouseMove?.Invoke(s, e);
-            _gl.MouseWheel += (s, e) => MouseWheel?.Invoke(s, e);
         }
+
+        // =========================
+        // IGLView: свойства
+        // =========================
+
+        /// <summary>
+        /// Реальный WinForms-контрол (по контракту IGLView).
+        /// Его встраивают в pnlViewport.
+        /// </summary>
+        public Control Control => _gl;
+
+        /// <summary>
+        /// Доп. удобство для твоих Presenter-ов: контрол, который принимает ввод.
+        /// Обычно это тот же _gl.
+        /// </summary>
+        public Control InputControl => _gl;
 
         // =========================
         // IGLView events
         // =========================
-        public new event MouseEventHandler? MouseDown;
-        public new event MouseEventHandler? MouseUp;
-        public new event MouseEventHandler? MouseMove;
-        public new event MouseEventHandler? MouseWheel;
+        //
+        // ВАЖНО: не поднимаем "свои" new-события, а просто
+        // прокидываем add/remove к событиям _gl, чтобы не было перекосов по именам.
 
+        public event MouseEventHandler? MouseDown
+        {
+            add { _gl.MouseDown += value; }
+            remove { _gl.MouseDown -= value; }
+        }
+
+        public event MouseEventHandler? MouseUp
+        {
+            add { _gl.MouseUp += value; }
+            remove { _gl.MouseUp -= value; }
+        }
+
+        public event MouseEventHandler? MouseMove
+        {
+            add { _gl.MouseMove += value; }
+            remove { _gl.MouseMove -= value; }
+        }
+
+        public event MouseEventHandler? MouseWheel
+        {
+            add { _gl.MouseWheel += value; }
+            remove { _gl.MouseWheel -= value; }
+        }
+
+        public event EventHandler? MouseEnter
+        {
+            add { _gl.MouseEnter += value; }
+            remove { _gl.MouseEnter -= value; }
+        }
+
+        /// <summary>
+        /// Событие “изменился размер вьюпорта”.
+        /// Если в твоём IGLView его нет — можно не использовать.
+        /// </summary>
         public event EventHandler? ViewportResized;
 
         // =========================
-        // IGLView API
+        // IGLView API (контекст/буферы/viewport)
+        // =========================
+
+        /// <summary>
+        /// Сделать контекст OpenGL текущим.
+        /// </summary>
+        public void MakeCurrent()
+        {
+            try { _gl.MakeCurrent(); }
+            catch { /* MVP: не падаем */ }
+        }
+
+        /// <summary>
+        /// Поменять буферы местами.
+        /// </summary>
+        public void SwapBuffers()
+        {
+            try { _gl.SwapBuffers(); }
+            catch { /* MVP: не падаем */ }
+        }
+
+        /// <summary>
+        /// Выставить OpenGL viewport под текущий размер.
+        /// </summary>
+        public void ResizeViewport(int width, int height)
+        {
+            if (width <= 0 || height <= 0) return;
+
+            try
+            {
+                MakeCurrent();
+                GL.Viewport(0, 0, width, height);
+            }
+            catch
+            {
+                // MVP: не падаем
+            }
+        }
+
+        // =========================
+        // Встраивание и запуск рендера (Presenter вызывает)
         // =========================
 
         /// <summary>
@@ -149,10 +236,10 @@ namespace kuber3d.Views
         {
             _isLoaded = true;
 
-            // Сообщаем рендереру, что есть контекст и размер
-            // Обычно здесь: включают depth test, настройку clear color и т.п.
-            // Мы делаем это внутри SceneRenderer.Init()
-            _renderer?.Init(_gl.ClientSize.Width, _gl.ClientSize.Height);
+            // Контекст уже создан — можно инициализировать рендерер.
+            // В разных версиях интерфейса IRenderer сигнатуры могут отличаться,
+            // поэтому дергаем "аккуратно" через dynamic.
+            SafeCallRendererInit();
 
             // После загрузки можно стартовать таймер (если уже назначили renderer)
             if (_renderer != null)
@@ -165,11 +252,17 @@ namespace kuber3d.Views
         {
             if (!_isLoaded) return;
 
+            var w = _gl.ClientSize.Width;
+            var h = _gl.ClientSize.Height;
+
             // Сообщаем миру, что размер поменялся (Presenter обновит камеру Aspect)
             ViewportResized?.Invoke(this, EventArgs.Empty);
 
+            // Обновляем viewport в OpenGL
+            ResizeViewport(w, h);
+
             // И сразу говорим рендереру обновить viewport/матрицы
-            _renderer?.Resize(_gl.ClientSize.Width, _gl.ClientSize.Height);
+            SafeCallRendererResize(w, h);
 
             RequestRender();
         }
@@ -179,16 +272,98 @@ namespace kuber3d.Views
             if (!_isLoaded) return;
             if (_renderer == null) return;
 
-            // GLControl в WinForms обычно сам делает MakeCurrent внутри,
-            // но мы не надеемся на магию.
-            // Если понадобится: _gl.MakeCurrent(); (в pre версии может быть иначе)
-            // Пока работаем через стандартный пайп.
+            // Делаем контекст текущим и выставляем viewport
+            MakeCurrent();
 
-            // Рисуем кадр
-            _renderer.Render();
+            var w = _gl.ClientSize.Width;
+            var h = _gl.ClientSize.Height;
+            if (w > 0 && h > 0)
+                ResizeViewport(w, h);
+
+            // Рисуем кадр (рендерер внутри решает что рисовать: сетка/оси/сцена).
+            SafeCallRendererRender();
 
             // Показываем результат
-            _gl.SwapBuffers();
+            SwapBuffers();
+        }
+
+        // =========================
+        // Safe calls to renderer (чтобы не ловить перекосы сигнатур)
+        // =========================
+
+        /// <summary>
+        /// Аккуратно дергаем Init() у рендерера.
+        /// Поддерживает разные варианты: Init(), Init(w,h), Initialize(), Start() и т.п.
+        /// </summary>
+        private void SafeCallRendererInit()
+        {
+            if (_renderer == null) return;
+
+            try
+            {
+                dynamic r = _renderer;
+
+                // 1) Самый частый вариант: Init()
+                try { r.Init(); return; } catch { }
+
+                // 2) Если где-то был Init(w,h)
+                try { r.Init(_gl.ClientSize.Width, _gl.ClientSize.Height); return; } catch { }
+
+                // 3) Если где-то был Initialize()
+                try { r.Initialize(); return; } catch { }
+
+                // 4) Если где-то Start()
+                try { r.Start(); return; } catch { }
+            }
+            catch
+            {
+                // MVP: не падаем
+            }
+        }
+
+        /// <summary>
+        /// Аккуратно дергаем Resize(w,h) у рендерера.
+        /// </summary>
+        private void SafeCallRendererResize(int width, int height)
+        {
+            if (_renderer == null) return;
+
+            try
+            {
+                dynamic r = _renderer;
+                try { r.Resize(width, height); } catch { }
+            }
+            catch
+            {
+                // MVP: не падаем
+            }
+        }
+
+        /// <summary>
+        /// Аккуратно дергаем Render() у рендерера.
+        /// Поддерживает разные варианты: Render(), RenderFrame(), Render(...)
+        /// </summary>
+        private void SafeCallRendererRender()
+        {
+            if (_renderer == null) return;
+
+            try
+            {
+                dynamic r = _renderer;
+
+                // 1) Render()
+                try { r.Render(); return; } catch { }
+
+                // 2) RenderFrame()
+                try { r.RenderFrame(); return; } catch { }
+
+                // 3) Draw()
+                try { r.Draw(); return; } catch { }
+            }
+            catch
+            {
+                // MVP: не падаем
+            }
         }
 
         // =========================
@@ -205,6 +380,12 @@ namespace kuber3d.Views
                 _gl.Load -= OnGlLoad;
                 _gl.Paint -= OnGlPaint;
                 _gl.Resize -= OnGlResize;
+
+                // Рендерер может держать GL-ресурсы (шейдеры/буферы).
+                // Если у него есть Dispose() — освобождаем.
+                try { _renderer?.Dispose(); } catch { }
+
+                _renderer = null;
 
                 _gl.Dispose();
             }

@@ -11,38 +11,39 @@
 // - Presenter работает с IRenderer, не зная реализацию (SceneRenderer на OpenGL).
 // - Можно подменить рендерер (например, на заглушку/тестовый/другую графику).
 //
-// На MVP-минимум нам нужно:
-// - Init(): один раз настроить OpenGL (clear color, depth test, shader, буферы и т.п.)
-// - Resize(): обновить матрицу камеры/viewport/зависимости от размера
-// - Render(): нарисовать кадр, учитывая флаги сетки/осей, состояние камеры и сцену
+// На MVP-минимум нам нужно (под текущую GLView.cs):
+// - Init(width,height): один раз настроить OpenGL и ресурсы после появления GL-контекста
+// - Resize(width,height): обработать изменение размеров (viewport/проекция/камера)
+// - Render(): нарисовать 1 кадр (внутри рендерер сам читает Camera/Scene/Settings, т.к. они у него уже "забинжены")
 //
 // Важно:
 // - IRenderer НЕ владеет GLControl напрямую (это делает IGLView/реализация).
-// - Но перед Render/Init обычно нужен текущий контекст (MakeCurrent делает Presenter через IGLView).
+// - Но перед Init/Render/Resize должен быть текущий GL-контекст (MakeCurrent делает GLView/IGLView).
+// - Рендерер почти всегда держит GL-ресурсы (шейдеры/буферы) => нужен Dispose().
 
-using kuber3d.Models;
-using kuber3d.Rendering;
+using System;
 
 namespace kuber3d.Contracts
 {
-    public interface IRenderer
+    public interface IRenderer : IDisposable
     {
         /// <summary>
         /// Инициализация ресурсов рендера (шейдеры, VBO/VAO и т.д.).
         /// Вызывается 1 раз после создания GL-контекста.
         /// </summary>
-        void Init();
+        void Init(int width, int height);
 
         /// <summary>
         /// Сообщаем о смене размера окна/вьюпорта.
-        /// Обычно: GL.Viewport + Camera/Projection пересчёт.
+        /// Обычно: GL.Viewport + пересчёт проекции/аспекта.
         /// </summary>
         void Resize(int width, int height);
 
         /// <summary>
         /// Рисуем 1 кадр.
-        /// На вход: текущее состояние камеры, сцены и настройка визуализации (оси/сетка).
+        /// На MVP-минимуме входные данные (камера/сцена/настройки) уже находятся внутри рендерера
+        /// (через конструктор или Bind(...) на уровне Presenter-а).
         /// </summary>
-        void Render(CameraModel camera, SceneModel scene, RenderSettings settings);
+        void Render();
     }
 }

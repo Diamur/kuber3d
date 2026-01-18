@@ -99,7 +99,7 @@ namespace kuber3d
         /// Встроить OpenGL-контрол внутрь pnlViewport.
         /// Presenter/ViewportPresenter создаёт IGLView, а FormMain просто размещает.
         /// </summary>
-        public void AttachViewport(kuber3d.Contracts.IGLView glView)
+        public void AttachViewport(IGLView glView)
         {
             if (glView == null) throw new ArgumentNullException(nameof(glView));
 
