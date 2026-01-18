@@ -3,12 +3,12 @@
     partial class FormMain
     {
         /// <summary>
-        ///  Required designer variable.
+        /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        ///  Clean up any resources being used.
+        /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
@@ -23,19 +23,19 @@
         #region Windows Form Designer generated code
 
         /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             pnlTop = new Panel();
+            btnStart3D = new Button();
+            chkAxes = new CheckBox();
+            chkGrid = new CheckBox();
             splitMain = new SplitContainer();
             tvScene = new TreeView();
             pnlViewport = new Panel();
-            btnStart3D = new Button();
-            chkGrid = new CheckBox();
-            chkAxes = new CheckBox();
             pnlTop.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
@@ -45,15 +45,50 @@
             // 
             // pnlTop
             // 
-            pnlTop.BackColor = Color.WhiteSmoke;
+            pnlTop.BackColor = SystemColors.ControlLight;
+            pnlTop.Controls.Add(btnStart3D);
             pnlTop.Controls.Add(chkAxes);
             pnlTop.Controls.Add(chkGrid);
-            pnlTop.Controls.Add(btnStart3D);
             pnlTop.Dock = DockStyle.Top;
             pnlTop.Location = new Point(0, 0);
             pnlTop.Name = "pnlTop";
-            pnlTop.Size = new Size(1123, 100);
+            pnlTop.Size = new Size(1130, 100);
             pnlTop.TabIndex = 0;
+            // 
+            // btnStart3D
+            // 
+            btnStart3D.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnStart3D.BackColor = SystemColors.ButtonHighlight;
+            btnStart3D.Location = new Point(1058, 21);
+            btnStart3D.Name = "btnStart3D";
+            btnStart3D.Size = new Size(60, 60);
+            btnStart3D.TabIndex = 2;
+            btnStart3D.Text = "3D";
+            btnStart3D.UseVisualStyleBackColor = false;
+            // 
+            // chkAxes
+            // 
+            chkAxes.AutoSize = true;
+            chkAxes.Checked = true;
+            chkAxes.CheckState = CheckState.Checked;
+            chkAxes.Location = new Point(9, 32);
+            chkAxes.Name = "chkAxes";
+            chkAxes.Size = new Size(48, 19);
+            chkAxes.TabIndex = 1;
+            chkAxes.Text = "Оси";
+            chkAxes.UseVisualStyleBackColor = true;
+            // 
+            // chkGrid
+            // 
+            chkGrid.AutoSize = true;
+            chkGrid.Checked = true;
+            chkGrid.CheckState = CheckState.Checked;
+            chkGrid.Location = new Point(10, 10);
+            chkGrid.Name = "chkGrid";
+            chkGrid.Size = new Size(57, 19);
+            chkGrid.TabIndex = 0;
+            chkGrid.Text = "Сетка";
+            chkGrid.UseVisualStyleBackColor = true;
             // 
             // splitMain
             // 
@@ -64,12 +99,16 @@
             // splitMain.Panel1
             // 
             splitMain.Panel1.Controls.Add(tvScene);
+            splitMain.Panel1.RightToLeft = RightToLeft.No;
+            splitMain.Panel1MinSize = 180;
             // 
             // splitMain.Panel2
             // 
             splitMain.Panel2.Controls.Add(pnlViewport);
-            splitMain.Size = new Size(1123, 585);
-            splitMain.SplitterDistance = 260;
+            splitMain.Panel2.RightToLeft = RightToLeft.No;
+            splitMain.Panel2MinSize = 360;
+            splitMain.Size = new Size(1130, 567);
+            splitMain.SplitterDistance = 240;
             splitMain.TabIndex = 1;
             // 
             // tvScene
@@ -77,63 +116,26 @@
             tvScene.Dock = DockStyle.Fill;
             tvScene.Location = new Point(0, 0);
             tvScene.Name = "tvScene";
-            tvScene.Size = new Size(260, 585);
+            tvScene.Size = new Size(240, 567);
             tvScene.TabIndex = 0;
             // 
             // pnlViewport
             // 
-            pnlViewport.BackColor = SystemColors.GradientActiveCaption;
             pnlViewport.Dock = DockStyle.Fill;
             pnlViewport.Location = new Point(0, 0);
             pnlViewport.Name = "pnlViewport";
-            pnlViewport.Size = new Size(859, 585);
+            pnlViewport.Size = new Size(886, 567);
             pnlViewport.TabIndex = 0;
-            // 
-            // btnStart3D
-            // 
-            btnStart3D.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnStart3D.Location = new Point(1061, 25);
-            btnStart3D.Name = "btnStart3D";
-            btnStart3D.Size = new Size(50, 50);
-            btnStart3D.TabIndex = 0;
-            btnStart3D.Text = "3D";
-            btnStart3D.UseVisualStyleBackColor = true;
-            // 
-            // chkGrid
-            // 
-            chkGrid.AutoSize = true;
-            chkGrid.Checked = true;
-            chkGrid.CheckState = CheckState.Checked;
-            chkGrid.Location = new Point(15, 11);
-            chkGrid.Name = "chkGrid";
-            chkGrid.Size = new Size(57, 19);
-            chkGrid.TabIndex = 1;
-            chkGrid.Text = "Сетка";
-            chkGrid.UseVisualStyleBackColor = true;
-            // 
-            // chkAxes
-            // 
-            chkAxes.AutoSize = true;
-            chkAxes.Checked = true;
-            chkAxes.CheckState = CheckState.Checked;
-            chkAxes.Location = new Point(14, 38);
-            chkAxes.Name = "chkAxes";
-            chkAxes.Size = new Size(48, 19);
-            chkAxes.TabIndex = 2;
-            chkAxes.Text = "Оси";
-            chkAxes.UseVisualStyleBackColor = true;
             // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1123, 685);
+            ClientSize = new Size(1130, 667);
             Controls.Add(splitMain);
             Controls.Add(pnlTop);
-            FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "FormMain";
-            RightToLeft = RightToLeft.No;
             Text = "Kuber3D";
             pnlTop.ResumeLayout(false);
             pnlTop.PerformLayout();
@@ -147,11 +149,11 @@
         #endregion
 
         private Panel pnlTop;
+        private Button btnStart3D;
+        private CheckBox chkAxes;
+        private CheckBox chkGrid;
         private SplitContainer splitMain;
         private TreeView tvScene;
         private Panel pnlViewport;
-        private CheckBox chkAxes;
-        private CheckBox chkGrid;
-        private Button btnStart3D;
     }
 }
