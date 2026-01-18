@@ -217,3 +217,5 @@ View-компонент OpenGL внутри WinForms на базе `OpenTK.WinFo
 - После каждого обновления: записать отчет в AGENTS.md (что изменили, какие файлы трогали, какие ошибки/фиксы, что проверить при запуске).
 
 ## Отчет по обновлениям
+
+- 2025-09-27: Проверены соответствия имен/связей в MVP. Исправлено несоответствие события Start3D (MainPresenter подписывается/отписывается на Start3DClicked), контракт IMainPresenter приведён к Initialize/Dispose по спецификации. Затронутые файлы: src/app/mvp/Presenters/MainPresenter.cs, src/app/mvp/Contracts/IMainPresenter.cs. Проверить при запуске: клик по btnStart3D запускает 3D, корректно отрабатывают Grid/Axes toggles без ошибок компиляции.
