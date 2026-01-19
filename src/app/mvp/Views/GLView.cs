@@ -1,15 +1,26 @@
 // mvp\Views\GLView.cs
 //
-// GLView — View-компонент для OpenGL внутри WinForms.
-// Он НЕ знает ничего про бизнес-логику, MVP-решения и т.п.
-// Его задача:
-// - быть "хостом" OpenGL (GLControl)
-// - прокидывать события ввода наружу (мышь, колесо, resize)
-// - уметь запускать/останавливать рендер
-// - вызывать IRenderer.Render() когда нужно перерисовать
+using OpenTK.Windowing.Common;
+            // :    (3.3 Core),   shader #version 330 core.
+            var settings = new GLControlSettings
+            {
+                MajorVersion = 3,
+                MinorVersion = 3,
+                Profile = ContextProfile.Core,
+                Flags = ContextFlags.ForwardCompatible,
+                DepthBits = 24,
+                StencilBits = 8
+            };
+
+            _gl = new GLControl(settings)
+// Р•РіРѕ Р·Р°РґР°С‡Р°:
+// - Р±С‹С‚СЊ "С…РѕСЃС‚РѕРј" OpenGL (GLControl)
+// - РїСЂРѕРєРёРґС‹РІР°С‚СЊ СЃРѕР±С‹С‚РёСЏ РІРІРѕРґР° РЅР°СЂСѓР¶Сѓ (РјС‹С€СЊ, РєРѕР»РµСЃРѕ, resize)
+// - СѓРјРµС‚СЊ Р·Р°РїСѓСЃРєР°С‚СЊ/РѕСЃС‚Р°РЅР°РІР»РёРІР°С‚СЊ СЂРµРЅРґРµСЂ
+// - РІС‹Р·С‹РІР°С‚СЊ IRenderer.Render() РєРѕРіРґР° РЅСѓР¶РЅРѕ РїРµСЂРµСЂРёСЃРѕРІР°С‚СЊ
 //
-// В MVP это "V" (View) для 3D.
-// Presenter управляет: когда создать, когда стартовать, что рендерить.
+// Р’ MVP СЌС‚Рѕ "V" (View) РґР»СЏ 3D.
+// Presenter СѓРїСЂР°РІР»СЏРµС‚: РєРѕРіРґР° СЃРѕР·РґР°С‚СЊ, РєРѕРіРґР° СЃС‚Р°СЂС‚РѕРІР°С‚СЊ, С‡С‚Рѕ СЂРµРЅРґРµСЂРёС‚СЊ.
 
 using System;
 using System.Drawing;
@@ -19,38 +30,38 @@ using kuber3d.Contracts;
 // OpenTK WinForms GLControl
 using OpenTK.WinForms;
 
-// OpenGL viewport (на ResizeViewport)
+// OpenGL viewport (РЅР° ResizeViewport)
 using OpenTK.Graphics.OpenGL4;
 using WindowsTimer = System.Windows.Forms.Timer;
 
 namespace kuber3d.Views
 {
     /// <summary>
-    /// Реализация IGLView через OpenTK GLControl.
+    /// Р РµР°Р»РёР·Р°С†РёСЏ IGLView С‡РµСЂРµР· OpenTK GLControl.
     /// </summary>
     public sealed class GLView : UserControl, IGLView
     {
-        // Внутренний OpenGL-контрол (именно он создает контекст и умеет SwapBuffers)
+        // Р’РЅСѓС‚СЂРµРЅРЅРёР№ OpenGL-РєРѕРЅС‚СЂРѕР» (РёРјРµРЅРЅРѕ РѕРЅ СЃРѕР·РґР°РµС‚ РєРѕРЅС‚РµРєСЃС‚ Рё СѓРјРµРµС‚ SwapBuffers)
         private readonly GLControl _gl;
 
-        // Кто реально рисует кадр (рендерер)
+        // РљС‚Рѕ СЂРµР°Р»СЊРЅРѕ СЂРёСЃСѓРµС‚ РєР°РґСЂ (СЂРµРЅРґРµСЂРµСЂ)
         private IRenderer? _renderer;
 
-        // Таймер для "постоянной" отрисовки.
-        // Для MVP так проще и на конференции выглядит стабильно.
+        // РўР°Р№РјРµСЂ РґР»СЏ "РїРѕСЃС‚РѕСЏРЅРЅРѕР№" РѕС‚СЂРёСЃРѕРІРєРё.
+        // Р”Р»СЏ MVP С‚Р°Рє РїСЂРѕС‰Рµ Рё РЅР° РєРѕРЅС„РµСЂРµРЅС†РёРё РІС‹РіР»СЏРґРёС‚ СЃС‚Р°Р±РёР»СЊРЅРѕ.
         private readonly WindowsTimer _timer;
 
-        // Флаг, чтобы не вызывать Render() пока контрол не готов
+        // Р¤Р»Р°Рі, С‡С‚РѕР±С‹ РЅРµ РІС‹Р·С‹РІР°С‚СЊ Render() РїРѕРєР° РєРѕРЅС‚СЂРѕР» РЅРµ РіРѕС‚РѕРІ
         private bool _isLoaded;
 
-        // ДОБАВЛЕНО:
-        // Флаг рендер-цикла (чтобы соответствовать расширенному контракту IGLView.IsRendering)
+        // Р”РћР‘РђР’Р›Р•РќРћ:
+        // Р¤Р»Р°Рі СЂРµРЅРґРµСЂ-С†РёРєР»Р° (С‡С‚РѕР±С‹ СЃРѕРѕС‚РІРµС‚СЃС‚РІРѕРІР°С‚СЊ СЂР°СЃС€РёСЂРµРЅРЅРѕРјСѓ РєРѕРЅС‚СЂР°РєС‚Сѓ IGLView.IsRendering)
         private bool _isRendering;
 
         public GLView()
         {
-            // 1) Создаём GLControl
-            // В pre-релизе OpenTK.WinForms обычно достаточно просто new GLControl()
+            // 1) РЎРѕР·РґР°С‘Рј GLControl
+            // Р’ pre-СЂРµР»РёР·Рµ OpenTK.WinForms РѕР±С‹С‡РЅРѕ РґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂРѕСЃС‚Рѕ new GLControl()
             _gl = new GLControl()
             {
                 Dock = DockStyle.Fill,
@@ -59,35 +70,35 @@ namespace kuber3d.Views
 
             Controls.Add(_gl);
 
-            // 2) Настраиваем таймер рендера
-            // 60 FPS примерно => 16 мс (можно поменять)
+            // 2) РќР°СЃС‚СЂР°РёРІР°РµРј С‚Р°Р№РјРµСЂ СЂРµРЅРґРµСЂР°
+            // 60 FPS РїСЂРёРјРµСЂРЅРѕ => 16 РјСЃ (РјРѕР¶РЅРѕ РїРѕРјРµРЅСЏС‚СЊ)
             _timer = new WindowsTimer { Interval = 16 };
             _timer.Tick += (_, _) => RequestRender();
 
-            // 3) Подписываемся на события GLControl
+            // 3) РџРѕРґРїРёСЃС‹РІР°РµРјСЃСЏ РЅР° СЃРѕР±С‹С‚РёСЏ GLControl
             _gl.Load += OnGlLoad;
             _gl.Paint += OnGlPaint;
             _gl.Resize += OnGlResize;
         }
 
         // =========================
-        // IGLView: свойства
+        // IGLView: СЃРІРѕР№СЃС‚РІР°
         // =========================
 
         /// <summary>
-        /// Реальный WinForms-контрол (по контракту IGLView).
-        /// Его встраивают в pnlViewport.
+        /// Р РµР°Р»СЊРЅС‹Р№ WinForms-РєРѕРЅС‚СЂРѕР» (РїРѕ РєРѕРЅС‚СЂР°РєС‚Сѓ IGLView).
+        /// Р•РіРѕ РІСЃС‚СЂР°РёРІР°СЋС‚ РІ pnlViewport.
         /// </summary>
         public Control Control => _gl;
 
         /// <summary>
-        /// Доп. удобство для твоих Presenter-ов: контрол, который принимает ввод.
-        /// Обычно это тот же _gl.
+        /// Р”РѕРї. СѓРґРѕР±СЃС‚РІРѕ РґР»СЏ С‚РІРѕРёС… Presenter-РѕРІ: РєРѕРЅС‚СЂРѕР», РєРѕС‚РѕСЂС‹Р№ РїСЂРёРЅРёРјР°РµС‚ РІРІРѕРґ.
+        /// РћР±С‹С‡РЅРѕ СЌС‚Рѕ С‚РѕС‚ Р¶Рµ _gl.
         /// </summary>
         public Control InputControl => _gl;
 
-        // ДОБАВЛЕНО (под контракт IGLView, который мы расширяли ранее):
-        // Эти свойства иногда удобно читать Presenter-у, не лазая в Control напрямую.
+        // Р”РћР‘РђР’Р›Р•РќРћ (РїРѕРґ РєРѕРЅС‚СЂР°РєС‚ IGLView, РєРѕС‚РѕСЂС‹Р№ РјС‹ СЂР°СЃС€РёСЂСЏР»Рё СЂР°РЅРµРµ):
+        // Р­С‚Рё СЃРІРѕР№СЃС‚РІР° РёРЅРѕРіРґР° СѓРґРѕР±РЅРѕ С‡РёС‚Р°С‚СЊ Presenter-Сѓ, РЅРµ Р»Р°Р·Р°СЏ РІ Control РЅР°РїСЂСЏРјСѓСЋ.
         public int ClientWidth => _gl.ClientSize.Width;
         public int ClientHeight => _gl.ClientSize.Height;
         public bool IsRendering => _isRendering;
@@ -96,8 +107,8 @@ namespace kuber3d.Views
         // IGLView events
         // =========================
         //
-        // ВАЖНО: не поднимаем "свои" new-события, а просто
-        // прокидываем add/remove к событиям _gl, чтобы не было перекосов по именам.
+        // Р’РђР–РќРћ: РЅРµ РїРѕРґРЅРёРјР°РµРј "СЃРІРѕРё" new-СЃРѕР±С‹С‚РёСЏ, Р° РїСЂРѕСЃС‚Рѕ
+        // РїСЂРѕРєРёРґС‹РІР°РµРј add/remove Рє СЃРѕР±С‹С‚РёСЏРј _gl, С‡С‚РѕР±С‹ РЅРµ Р±С‹Р»Рѕ РїРµСЂРµРєРѕСЃРѕРІ РїРѕ РёРјРµРЅР°Рј.
 
         public new event MouseEventHandler? MouseDown
         {
@@ -130,35 +141,35 @@ namespace kuber3d.Views
         }
 
         /// <summary>
-        /// Событие “изменился размер вьюпорта”.
-        /// Если в твоём IGLView его нет — можно не использовать.
+        /// РЎРѕР±С‹С‚РёРµ вЂњРёР·РјРµРЅРёР»СЃСЏ СЂР°Р·РјРµСЂ РІСЊСЋРїРѕСЂС‚Р°вЂќ.
+        /// Р•СЃР»Рё РІ С‚РІРѕС‘Рј IGLView РµРіРѕ РЅРµС‚ вЂ” РјРѕР¶РЅРѕ РЅРµ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ.
         /// </summary>
         public event EventHandler? ViewportResized;
 
         // =========================
-        // IGLView API (контекст/буферы/viewport)
+        // IGLView API (РєРѕРЅС‚РµРєСЃС‚/Р±СѓС„РµСЂС‹/viewport)
         // =========================
 
         /// <summary>
-        /// Сделать контекст OpenGL текущим.
+        /// РЎРґРµР»Р°С‚СЊ РєРѕРЅС‚РµРєСЃС‚ OpenGL С‚РµРєСѓС‰РёРј.
         /// </summary>
         public void MakeCurrent()
         {
             try { _gl.MakeCurrent(); }
-            catch { /* MVP: не падаем */ }
+            catch { /* MVP: РЅРµ РїР°РґР°РµРј */ }
         }
 
         /// <summary>
-        /// Поменять буферы местами.
+        /// РџРѕРјРµРЅСЏС‚СЊ Р±СѓС„РµСЂС‹ РјРµСЃС‚Р°РјРё.
         /// </summary>
         public void SwapBuffers()
         {
             try { _gl.SwapBuffers(); }
-            catch { /* MVP: не падаем */ }
+            catch { /* MVP: РЅРµ РїР°РґР°РµРј */ }
         }
 
         /// <summary>
-        /// Выставить OpenGL viewport под текущий размер.
+        /// Р’С‹СЃС‚Р°РІРёС‚СЊ OpenGL viewport РїРѕРґ С‚РµРєСѓС‰РёР№ СЂР°Р·РјРµСЂ.
         /// </summary>
         public void ResizeViewport(int width, int height)
         {
@@ -171,69 +182,69 @@ namespace kuber3d.Views
             }
             catch
             {
-                // MVP: не падаем
+                // MVP: РЅРµ РїР°РґР°РµРј
             }
         }
 
         // =========================
-        // Встраивание и запуск рендера (Presenter вызывает)
+        // Р’СЃС‚СЂР°РёРІР°РЅРёРµ Рё Р·Р°РїСѓСЃРє СЂРµРЅРґРµСЂР° (Presenter РІС‹Р·С‹РІР°РµС‚)
         // =========================
 
         /// <summary>
-        /// "Пристыковать" GLView внутрь host-контейнера (pnlViewport).
+        /// "РџСЂРёСЃС‚С‹РєРѕРІР°С‚СЊ" GLView РІРЅСѓС‚СЂСЊ host-РєРѕРЅС‚РµР№РЅРµСЂР° (pnlViewport).
         /// </summary>
         public void AttachTo(Control host)
         {
-            // Без магии: просто добавляем в Controls родителя
+            // Р‘РµР· РјР°РіРёРё: РїСЂРѕСЃС‚Рѕ РґРѕР±Р°РІР»СЏРµРј РІ Controls СЂРѕРґРёС‚РµР»СЏ
             Dock = DockStyle.Fill;
-            host.Controls.Clear();        // чтобы не осталось старых контролов
+            host.Controls.Clear();        // С‡С‚РѕР±С‹ РЅРµ РѕСЃС‚Р°Р»РѕСЃСЊ СЃС‚Р°СЂС‹С… РєРѕРЅС‚СЂРѕР»РѕРІ
             host.Controls.Add(this);
 
-            // Фокус в GL, чтобы колесо/мышь работали сразу
+            // Р¤РѕРєСѓСЃ РІ GL, С‡С‚РѕР±С‹ РєРѕР»РµСЃРѕ/РјС‹С€СЊ СЂР°Р±РѕС‚Р°Р»Рё СЃСЂР°Р·Сѓ
             FocusGL();
         }
 
         /// <summary>
-        /// Запуск рендера. Presenter передает сюда IRenderer.
+        /// Р—Р°РїСѓСЃРє СЂРµРЅРґРµСЂР°. Presenter РїРµСЂРµРґР°РµС‚ СЃСЋРґР° IRenderer.
         /// </summary>
         public void StartRendering(IRenderer renderer)
         {
             _renderer = renderer;
 
-            // ВАЖНО:
-            // GLControl.Load может сработать ДО того, как Presenter вызовет StartRendering().
-            // Тогда OnGlLoad не сможет сделать Init(), потому что _renderer был null.
-            // Поэтому если мы уже loaded — делаем Init здесь.
+            // Р’РђР–РќРћ:
+            // GLControl.Load РјРѕР¶РµС‚ СЃСЂР°Р±РѕС‚Р°С‚СЊ Р”Рћ С‚РѕРіРѕ, РєР°Рє Presenter РІС‹Р·РѕРІРµС‚ StartRendering().
+            // РўРѕРіРґР° OnGlLoad РЅРµ СЃРјРѕР¶РµС‚ СЃРґРµР»Р°С‚СЊ Init(), РїРѕС‚РѕРјСѓ С‡С‚Рѕ _renderer Р±С‹Р» null.
+            // РџРѕСЌС‚РѕРјСѓ РµСЃР»Рё РјС‹ СѓР¶Рµ loaded вЂ” РґРµР»Р°РµРј Init Р·РґРµСЃСЊ.
             if (_isLoaded)
             {
                 try
                 {
-                    // На всякий случай делаем контекст текущим перед Init.
+                    // РќР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№ РґРµР»Р°РµРј РєРѕРЅС‚РµРєСЃС‚ С‚РµРєСѓС‰РёРј РїРµСЂРµРґ Init.
                     MakeCurrent();
 
-                    // Инициализируем рендерер так же "безопасно", как в Load
+                    // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј СЂРµРЅРґРµСЂРµСЂ С‚Р°Рє Р¶Рµ "Р±РµР·РѕРїР°СЃРЅРѕ", РєР°Рє РІ Load
                     SafeCallRendererInit();
 
-                    // И сразу даём ему актуальный размер (на некоторых версиях это важно)
+                    // Р СЃСЂР°Р·Сѓ РґР°С‘Рј РµРјСѓ Р°РєС‚СѓР°Р»СЊРЅС‹Р№ СЂР°Р·РјРµСЂ (РЅР° РЅРµРєРѕС‚РѕСЂС‹С… РІРµСЂСЃРёСЏС… СЌС‚Рѕ РІР°Р¶РЅРѕ)
                     SafeCallRendererResize(_gl.ClientSize.Width, _gl.ClientSize.Height);
                 }
                 catch
                 {
-                    // MVP: не падаем
+                    // MVP: РЅРµ РїР°РґР°РµРј
                 }
 
                 _timer.Start();
             }
             else
             {
-                // Если ещё не loaded — таймер включим в OnGlLoad (как было)
+                // Р•СЃР»Рё РµС‰С‘ РЅРµ loaded вЂ” С‚Р°Р№РјРµСЂ РІРєР»СЋС‡РёРј РІ OnGlLoad (РєР°Рє Р±С‹Р»Рѕ)
             }
 
             RequestRender();
         }
 
         /// <summary>
-        /// Остановка рендера (на будущее).
+        /// РћСЃС‚Р°РЅРѕРІРєР° СЂРµРЅРґРµСЂР° (РЅР° Р±СѓРґСѓС‰РµРµ).
         /// </summary>
         public void StopRendering()
         {
@@ -243,8 +254,8 @@ namespace kuber3d.Views
         }
 
         /// <summary>
-        /// Просим перерисовать кадр.
-        /// Делается через Invalidate у GLControl, что приводит к Paint.
+        /// РџСЂРѕСЃРёРј РїРµСЂРµСЂРёСЃРѕРІР°С‚СЊ РєР°РґСЂ.
+        /// Р”РµР»Р°РµС‚СЃСЏ С‡РµСЂРµР· Invalidate Сѓ GLControl, С‡С‚Рѕ РїСЂРёРІРѕРґРёС‚ Рє Paint.
         /// </summary>
         public void RequestRender()
         {
@@ -256,7 +267,8 @@ namespace kuber3d.Views
         }
 
         /// <summary>
-        /// Дать фокус именно GL-контролу (чтобы колесо/клавиши доходили).
+            MakeCurrent();
+        /// Р”Р°С‚СЊ С„РѕРєСѓСЃ РёРјРµРЅРЅРѕ GL-РєРѕРЅС‚СЂРѕР»Сѓ (С‡С‚РѕР±С‹ РєРѕР»РµСЃРѕ/РєР»Р°РІРёС€Рё РґРѕС…РѕРґРёР»Рё).
         /// </summary>
         public void FocusGL()
         {
@@ -271,16 +283,16 @@ namespace kuber3d.Views
         {
             _isLoaded = true;
 
-            // Контекст уже создан — можно инициализировать рендерер.
-            // В разных версиях интерфейса IRenderer сигнатуры могут отличаться,
-            // поэтому дергаем "аккуратно" через dynamic.
+            // РљРѕРЅС‚РµРєСЃС‚ СѓР¶Рµ СЃРѕР·РґР°РЅ вЂ” РјРѕР¶РЅРѕ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ СЂРµРЅРґРµСЂРµСЂ.
+            // Р’ СЂР°Р·РЅС‹С… РІРµСЂСЃРёСЏС… РёРЅС‚РµСЂС„РµР№СЃР° IRenderer СЃРёРіРЅР°С‚СѓСЂС‹ РјРѕРіСѓС‚ РѕС‚Р»РёС‡Р°С‚СЊСЃСЏ,
+            // РїРѕСЌС‚РѕРјСѓ РґРµСЂРіР°РµРј "Р°РєРєСѓСЂР°С‚РЅРѕ" С‡РµСЂРµР· dynamic.
             //
-            // ДОБАВЛЕНО:
-            // Сейчас мы привели контракт IRenderer к единому виду: Init(w,h), Resize(w,h), Render().
-            // Поэтому "аккуратность" оставляем (на случай старых кусков), но основной путь — Init(w,h).
+            // Р”РћР‘РђР’Р›Р•РќРћ:
+            // РЎРµР№С‡Р°СЃ РјС‹ РїСЂРёРІРµР»Рё РєРѕРЅС‚СЂР°РєС‚ IRenderer Рє РµРґРёРЅРѕРјСѓ РІРёРґСѓ: Init(w,h), Resize(w,h), Render().
+            // РџРѕСЌС‚РѕРјСѓ "Р°РєРєСѓСЂР°С‚РЅРѕСЃС‚СЊ" РѕСЃС‚Р°РІР»СЏРµРј (РЅР° СЃР»СѓС‡Р°Р№ СЃС‚Р°СЂС‹С… РєСѓСЃРєРѕРІ), РЅРѕ РѕСЃРЅРѕРІРЅРѕР№ РїСѓС‚СЊ вЂ” Init(w,h).
             SafeCallRendererInit();
 
-            // После загрузки можно стартовать таймер (если уже назначили renderer)
+            // РџРѕСЃР»Рµ Р·Р°РіСЂСѓР·РєРё РјРѕР¶РЅРѕ СЃС‚Р°СЂС‚РѕРІР°С‚СЊ С‚Р°Р№РјРµСЂ (РµСЃР»Рё СѓР¶Рµ РЅР°Р·РЅР°С‡РёР»Рё renderer)
             if (_renderer != null)
             {
                 _isRendering = true;
@@ -297,13 +309,13 @@ namespace kuber3d.Views
             var w = _gl.ClientSize.Width;
             var h = _gl.ClientSize.Height;
 
-            // Сообщаем миру, что размер поменялся (Presenter обновит камеру Aspect)
+            // РЎРѕРѕР±С‰Р°РµРј РјРёСЂСѓ, С‡С‚Рѕ СЂР°Р·РјРµСЂ РїРѕРјРµРЅСЏР»СЃСЏ (Presenter РѕР±РЅРѕРІРёС‚ РєР°РјРµСЂСѓ Aspect)
             ViewportResized?.Invoke(this, EventArgs.Empty);
 
-            // Обновляем viewport в OpenGL
+            // РћР±РЅРѕРІР»СЏРµРј viewport РІ OpenGL
             ResizeViewport(w, h);
 
-            // И сразу говорим рендереру обновить viewport/матрицы
+            // Р СЃСЂР°Р·Сѓ РіРѕРІРѕСЂРёРј СЂРµРЅРґРµСЂРµСЂСѓ РѕР±РЅРѕРІРёС‚СЊ viewport/РјР°С‚СЂРёС†С‹
             SafeCallRendererResize(w, h);
 
             RequestRender();
@@ -314,7 +326,7 @@ namespace kuber3d.Views
             if (!_isLoaded) return;
             if (_renderer == null) return;
 
-            // Делаем контекст текущим и выставляем viewport
+            // Р”РµР»Р°РµРј РєРѕРЅС‚РµРєСЃС‚ С‚РµРєСѓС‰РёРј Рё РІС‹СЃС‚Р°РІР»СЏРµРј viewport
             MakeCurrent();
 
             var w = _gl.ClientSize.Width;
@@ -322,20 +334,20 @@ namespace kuber3d.Views
             if (w > 0 && h > 0)
                 ResizeViewport(w, h);
 
-            // Рисуем кадр (рендерер внутри решает что рисовать: сетка/оси/сцена).
+            // Р РёСЃСѓРµРј РєР°РґСЂ (СЂРµРЅРґРµСЂРµСЂ РІРЅСѓС‚СЂРё СЂРµС€Р°РµС‚ С‡С‚Рѕ СЂРёСЃРѕРІР°С‚СЊ: СЃРµС‚РєР°/РѕСЃРё/СЃС†РµРЅР°).
             SafeCallRendererRender();
 
-            // Показываем результат
+            // РџРѕРєР°Р·С‹РІР°РµРј СЂРµР·СѓР»СЊС‚Р°С‚
             SwapBuffers();
         }
 
         // =========================
-        // Safe calls to renderer (чтобы не ловить перекосы сигнатур)
+        // Safe calls to renderer (С‡С‚РѕР±С‹ РЅРµ Р»РѕРІРёС‚СЊ РїРµСЂРµРєРѕСЃС‹ СЃРёРіРЅР°С‚СѓСЂ)
         // =========================
 
         /// <summary>
-        /// Аккуратно дергаем Init() у рендерера.
-        /// Поддерживает разные варианты: Init(), Init(w,h), Initialize(), Start() и т.п.
+        /// РђРєРєСѓСЂР°С‚РЅРѕ РґРµСЂРіР°РµРј Init() Сѓ СЂРµРЅРґРµСЂРµСЂР°.
+        /// РџРѕРґРґРµСЂР¶РёРІР°РµС‚ СЂР°Р·РЅС‹Рµ РІР°СЂРёР°РЅС‚С‹: Init(), Init(w,h), Initialize(), Start() Рё С‚.Рї.
         /// </summary>
         private void SafeCallRendererInit()
         {
@@ -343,7 +355,7 @@ namespace kuber3d.Views
 
             try
             {
-                // ОСНОВНОЙ (актуальный) путь по текущему контракту:
+                // РћРЎРќРћР’РќРћР™ (Р°РєС‚СѓР°Р»СЊРЅС‹Р№) РїСѓС‚СЊ РїРѕ С‚РµРєСѓС‰РµРјСѓ РєРѕРЅС‚СЂР°РєС‚Сѓ:
                 try
                 {
                     _renderer.Init(_gl.ClientSize.Width, _gl.ClientSize.Height);
@@ -351,31 +363,31 @@ namespace kuber3d.Views
                 }
                 catch
                 {
-                    // Если вдруг в старом коде другой контракт — попробуем динамику ниже
+                    // Р•СЃР»Рё РІРґСЂСѓРі РІ СЃС‚Р°СЂРѕРј РєРѕРґРµ РґСЂСѓРіРѕР№ РєРѕРЅС‚СЂР°РєС‚ вЂ” РїРѕРїСЂРѕР±СѓРµРј РґРёРЅР°РјРёРєСѓ РЅРёР¶Рµ
                 }
 
                 dynamic r = _renderer;
 
-                // 1) Самый частый вариант: Init()
+                // 1) РЎР°РјС‹Р№ С‡Р°СЃС‚С‹Р№ РІР°СЂРёР°РЅС‚: Init()
                 try { r.Init(); return; } catch { }
 
-                // 2) Если где-то был Init(w,h)
+                // 2) Р•СЃР»Рё РіРґРµ-С‚Рѕ Р±С‹Р» Init(w,h)
                 try { r.Init(_gl.ClientSize.Width, _gl.ClientSize.Height); return; } catch { }
 
-                // 3) Если где-то был Initialize()
+                // 3) Р•СЃР»Рё РіРґРµ-С‚Рѕ Р±С‹Р» Initialize()
                 try { r.Initialize(); return; } catch { }
 
-                // 4) Если где-то Start()
+                // 4) Р•СЃР»Рё РіРґРµ-С‚Рѕ Start()
                 try { r.Start(); return; } catch { }
             }
             catch
             {
-                // MVP: не падаем
+                // MVP: РЅРµ РїР°РґР°РµРј
             }
         }
 
         /// <summary>
-        /// Аккуратно дергаем Resize(w,h) у рендерера.
+        /// РђРєРєСѓСЂР°С‚РЅРѕ РґРµСЂРіР°РµРј Resize(w,h) Сѓ СЂРµРЅРґРµСЂРµСЂР°.
         /// </summary>
         private void SafeCallRendererResize(int width, int height)
         {
@@ -383,7 +395,7 @@ namespace kuber3d.Views
 
             try
             {
-                // ОСНОВНОЙ путь:
+                // РћРЎРќРћР’РќРћР™ РїСѓС‚СЊ:
                 try
                 {
                     _renderer.Resize(width, height);
@@ -391,7 +403,7 @@ namespace kuber3d.Views
                 }
                 catch
                 {
-                    // запасной путь ниже
+                    // Р·Р°РїР°СЃРЅРѕР№ РїСѓС‚СЊ РЅРёР¶Рµ
                 }
 
                 dynamic r = _renderer;
@@ -399,13 +411,13 @@ namespace kuber3d.Views
             }
             catch
             {
-                // MVP: не падаем
+                // MVP: РЅРµ РїР°РґР°РµРј
             }
         }
 
         /// <summary>
-        /// Аккуратно дергаем Render() у рендерера.
-        /// Поддерживает разные варианты: Render(), RenderFrame(), Render(...)
+        /// РђРєРєСѓСЂР°С‚РЅРѕ РґРµСЂРіР°РµРј Render() Сѓ СЂРµРЅРґРµСЂРµСЂР°.
+        /// РџРѕРґРґРµСЂР¶РёРІР°РµС‚ СЂР°Р·РЅС‹Рµ РІР°СЂРёР°РЅС‚С‹: Render(), RenderFrame(), Render(...)
         /// </summary>
         private void SafeCallRendererRender()
         {
@@ -413,7 +425,7 @@ namespace kuber3d.Views
 
             try
             {
-                // ОСНОВНОЙ путь:
+                // РћРЎРќРћР’РќРћР™ РїСѓС‚СЊ:
                 try
                 {
                     _renderer.Render();
@@ -421,7 +433,7 @@ namespace kuber3d.Views
                 }
                 catch
                 {
-                    // запасной путь ниже
+                    // Р·Р°РїР°СЃРЅРѕР№ РїСѓС‚СЊ РЅРёР¶Рµ
                 }
 
                 dynamic r = _renderer;
@@ -437,7 +449,7 @@ namespace kuber3d.Views
             }
             catch
             {
-                // MVP: не падаем
+                // MVP: РЅРµ РїР°РґР°РµРј
             }
         }
 
@@ -451,13 +463,13 @@ namespace kuber3d.Views
                 _timer.Stop();
                 _timer.Dispose();
 
-                // Отписки (не обязательно, но аккуратно)
+                // РћС‚РїРёСЃРєРё (РЅРµ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ, РЅРѕ Р°РєРєСѓСЂР°С‚РЅРѕ)
                 _gl.Load -= OnGlLoad;
                 _gl.Paint -= OnGlPaint;
                 _gl.Resize -= OnGlResize;
 
-                // Рендерер может держать GL-ресурсы (шейдеры/буферы).
-                // Если у него есть Dispose() — освобождаем.
+                // Р РµРЅРґРµСЂРµСЂ РјРѕР¶РµС‚ РґРµСЂР¶Р°С‚СЊ GL-СЂРµСЃСѓСЂСЃС‹ (С€РµР№РґРµСЂС‹/Р±СѓС„РµСЂС‹).
+                // Р•СЃР»Рё Сѓ РЅРµРіРѕ РµСЃС‚СЊ Dispose() вЂ” РѕСЃРІРѕР±РѕР¶РґР°РµРј.
                 try { _renderer?.Dispose(); } catch { }
 
                 _renderer = null;
