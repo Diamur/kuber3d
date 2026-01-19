@@ -230,3 +230,7 @@ View-РєРѕРјРїРѕРЅРµРЅС‚ OpenGL РІРЅСѓС‚СЂРё WinF
 - Тронутые файлы: `src/app/mvp/Core/Log.cs`, `src/app/mvp/Views/GLView.cs`, `src/app/mvp/Rendering/SceneRenderer.cs`.
 - Ошибки/фиксы: диагностируем, проходит ли цепочка Load -> Init -> Resize -> Render и где пропадает кадр.
 - Проверить при запуске: файл `kuber3d-render.log` рядом с exe, наличие строк GLView.OnGlLoad/OnGlPaint и SceneRenderer.Render.
+- Изменения: лог перенесен в LocalApplicationData\Kuber3D (kuber3d-render.log) и гарантируется создание директории.
+- Тронутые файлы: `src/app/mvp/Core/Log.cs`.
+- Ошибки/фиксы: проблема записи лога при отсутствии прав в BaseDirectory; теперь путь гарантированно доступен.
+- Проверить при запуске: `%LOCALAPPDATA%\Kuber3D\kuber3d-render.log` создается и содержит записи.

@@ -11,8 +11,12 @@ namespace kuber3d.Core
     public static class Log
     {
         private static readonly object Sync = new();
+        private static readonly string LogDirectory =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Kuber3D");
         private static readonly string LogPath =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "kuber3d-render.log");
+            Path.Combine(LogDirectory, "kuber3d-render.log");
+
+        public static string CurrentLogPath => LogPath;
 
         public static void Info(string message)
         {
@@ -28,6 +32,7 @@ namespace kuber3d.Core
         {
             try
             {
+                Directory.CreateDirectory(LogDirectory);
                 var timestamp = DateTime.Now.ToString("O", CultureInfo.InvariantCulture);
                 var line = $"{timestamp} [{level}] {message}{Environment.NewLine}";
                 lock (Sync)
