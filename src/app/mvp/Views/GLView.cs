@@ -144,8 +144,7 @@ namespace kuber3d.Views
         /// </summary>
         public void MakeCurrent()
         {
-            try { _gl.MakeCurrent(); }
-            catch { /* MVP: не падаем */ }
+            _gl.MakeCurrent();
         }
 
         /// <summary>
@@ -153,8 +152,7 @@ namespace kuber3d.Views
         /// </summary>
         public void SwapBuffers()
         {
-            try { _gl.SwapBuffers(); }
-            catch { /* MVP: не падаем */ }
+            _gl.SwapBuffers();
         }
 
         /// <summary>
@@ -164,15 +162,8 @@ namespace kuber3d.Views
         {
             if (width <= 0 || height <= 0) return;
 
-            try
-            {
-                MakeCurrent();
-                GL.Viewport(0, 0, width, height);
-            }
-            catch
-            {
-                // MVP: не падаем
-            }
+            MakeCurrent();
+            GL.Viewport(0, 0, width, height);
         }
 
         // =========================
@@ -270,6 +261,8 @@ namespace kuber3d.Views
         private void OnGlLoad(object? sender, EventArgs e)
         {
             _isLoaded = true;		
+
+            MakeCurrent();
 	
             // Контекст уже создан — можно инициализировать рендерер.
             // В разных версиях интерфейса IRenderer сигнатуры могут отличаться,
