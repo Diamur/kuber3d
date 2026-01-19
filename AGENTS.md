@@ -1,38 +1,38 @@
-# AGENTS.md — Архитектура Kuber3D (WinForms + OpenTK) в стиле MVP
+# AGENTS.md вЂ” РђСЂС…РёС‚РµРєС‚СѓСЂР° Kuber3D (WinForms + OpenTK) РІ СЃС‚РёР»Рµ MVP
 
-## Цель минимума (MVP)
-Запускаемый 3D-вьювер в WinForms, который:
-- создаёт OpenGL-вьюпорт по кнопке `btnStart3D`
-- реагирует на `chkGrid`, `chkAxes`
-- реагирует на мышь (orbit / pan / zoom) и перерисовывает сцену
+## Р¦РµР»СЊ РјРёРЅРёРјСѓРјР° (MVP)
+Р—Р°РїСѓСЃРєР°РµРјС‹Р№ 3D-РІСЊСЋРІРµСЂ РІ WinForms, РєРѕС‚РѕСЂС‹Р№:
+- СЃРѕР·РґР°С‘С‚ OpenGL-РІСЊСЋРїРѕСЂС‚ РїРѕ РєРЅРѕРїРєРµ `btnStart3D`
+- СЂРµР°РіРёСЂСѓРµС‚ РЅР° `chkGrid`, `chkAxes`
+- СЂРµР°РіРёСЂСѓРµС‚ РЅР° РјС‹С€СЊ (orbit / pan / zoom) Рё РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚ СЃС†РµРЅСѓ
 
-## Минимальный набор UI-элементов
+## РњРёРЅРёРјР°Р»СЊРЅС‹Р№ РЅР°Р±РѕСЂ UI-СЌР»РµРјРµРЅС‚РѕРІ
 - `FormMain`
   - `pnlTop` (Dock: Top)
     - `chkGrid`
     - `chkAxes`
     - `btnStart3D`
   - `splitMain` (Dock: Fill)
-    - Panel1 (левая)
+    - Panel1 (Р»РµРІР°СЏ)
       - `tvScene` (Dock: Fill)
-    - Panel2 (правая)
+    - Panel2 (РїСЂР°РІР°СЏ)
       - `pnlViewport` (Dock: Fill)
 
-## Слои и правило зависимостей
-Архитектура разделена на слои: View → Presenter → (Models/Core/Input/Rendering).
+## РЎР»РѕРё Рё РїСЂР°РІРёР»Рѕ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№
+РђСЂС…РёС‚РµРєС‚СѓСЂР° СЂР°Р·РґРµР»РµРЅР° РЅР° СЃР»РѕРё: View в†’ Presenter в†’ (Models/Core/Input/Rendering).
 
-- View (WinForms) НЕ принимает решений и НЕ содержит OpenGL-логики сцены.
-- Presenter принимает решения и управляет жизненным циклом.
-- Rendering рисует, Core считает математику, Models хранит состояние, Input интерпретирует ввод.
-- Допустимые зависимости:
-  - View зависит от Contracts и может зависеть от OpenTK (в части GLControl).
-  - Presenter зависит от Contracts + Models/Core/Input/Rendering.
-  - Rendering зависит от OpenTK (GL) и от Models/Core/Contracts.
-  - Models/Core/Input по возможности без WinForms-зависимостей (Input может принимать события через абстракции/коллбеки).
+- View (WinForms) РќР• РїСЂРёРЅРёРјР°РµС‚ СЂРµС€РµРЅРёР№ Рё РќР• СЃРѕРґРµСЂР¶РёС‚ OpenGL-Р»РѕРіРёРєРё СЃС†РµРЅС‹.
+- Presenter РїСЂРёРЅРёРјР°РµС‚ СЂРµС€РµРЅРёСЏ Рё СѓРїСЂР°РІР»СЏРµС‚ Р¶РёР·РЅРµРЅРЅС‹Рј С†РёРєР»РѕРј.
+- Rendering СЂРёСЃСѓРµС‚, Core СЃС‡РёС‚Р°РµС‚ РјР°С‚РµРјР°С‚РёРєСѓ, Models С…СЂР°РЅРёС‚ СЃРѕСЃС‚РѕСЏРЅРёРµ, Input РёРЅС‚РµСЂРїСЂРµС‚РёСЂСѓРµС‚ РІРІРѕРґ.
+- Р”РѕРїСѓСЃС‚РёРјС‹Рµ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё:
+  - View Р·Р°РІРёСЃРёС‚ РѕС‚ Contracts Рё РјРѕР¶РµС‚ Р·Р°РІРёСЃРµС‚СЊ РѕС‚ OpenTK (РІ С‡Р°СЃС‚Рё GLControl).
+  - Presenter Р·Р°РІРёСЃРёС‚ РѕС‚ Contracts + Models/Core/Input/Rendering.
+  - Rendering Р·Р°РІРёСЃРёС‚ РѕС‚ OpenTK (GL) Рё РѕС‚ Models/Core/Contracts.
+  - Models/Core/Input РїРѕ РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё Р±РµР· WinForms-Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ (Input РјРѕР¶РµС‚ РїСЂРёРЅРёРјР°С‚СЊ СЃРѕР±С‹С‚РёСЏ С‡РµСЂРµР· Р°Р±СЃС‚СЂР°РєС†РёРё/РєРѕР»Р»Р±РµРєРё).
 
-## Contracts (интерфейсы) — `mvp/Contracts`
+## Contracts (РёРЅС‚РµСЂС„РµР№СЃС‹) вЂ” `mvp/Contracts`
 ### `IMainView`
-Контракт главной формы (FormMain). Presenter видит только это.
+РљРѕРЅС‚СЂР°РєС‚ РіР»Р°РІРЅРѕР№ С„РѕСЂРјС‹ (FormMain). Presenter РІРёРґРёС‚ С‚РѕР»СЊРєРѕ СЌС‚Рѕ.
 
 - Events:
   - `Start3DClicked`
@@ -46,7 +46,7 @@
   - `AttachViewport(IGLView glView)`
   - `ShowMessage(string text)`
   - `SetStatus(string text)`
-- (Опционально, если используется в проекте):
+- (РћРїС†РёРѕРЅР°Р»СЊРЅРѕ, РµСЃР»Рё РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ РїСЂРѕРµРєС‚Рµ):
   - `Control ViewportHost`
   - `IGLView CreateGLView()`
 
@@ -55,7 +55,7 @@
 - `Dispose()`
 
 ### `IGLView`
-Контракт 3D-вьюпорта.
+РљРѕРЅС‚СЂР°РєС‚ 3D-РІСЊСЋРїРѕСЂС‚Р°.
 
 - Properties:
   - `Control Control`
@@ -70,150 +70,150 @@
   - `MouseMove`
   - `MouseWheel`
   - `MouseEnter`
-- (Опционально, если используется):
+- (РћРїС†РёРѕРЅР°Р»СЊРЅРѕ, РµСЃР»Рё РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ):
   - `StartRendering(IRenderer renderer)`
   - `StopRendering()`
   - `ViewportResized`
 
 ### `IRenderer`
-Единый контракт рендера. Используется GLView и SceneRenderer.
+Р•РґРёРЅС‹Р№ РєРѕРЅС‚СЂР°РєС‚ СЂРµРЅРґРµСЂР°. РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ GLView Рё SceneRenderer.
 
-Типовой жизненный цикл:
-- `Init(w, h)` или `Initialize()`
+РўРёРїРѕРІРѕР№ Р¶РёР·РЅРµРЅРЅС‹Р№ С†РёРєР»:
+- `Init(w, h)` РёР»Рё `Initialize()`
 - `Resize(w, h)`
 - `Render()`
 - `Dispose()`
 
-## Presenters — `mvp/Presenters`
+## Presenters вЂ” `mvp/Presenters`
 ### `MainPresenter`
-Главный Presenter приложения.
+Р“Р»Р°РІРЅС‹Р№ Presenter РїСЂРёР»РѕР¶РµРЅРёСЏ.
 
-Задачи:
-- подписаться на события `IMainView`
-- по `Start3DClicked` запустить 3D (через ViewportPresenter)
-- по `GridToggled` и `AxesToggled` обновлять RenderSettings и просить перерисовку
+Р—Р°РґР°С‡Рё:
+- РїРѕРґРїРёСЃР°С‚СЊСЃСЏ РЅР° СЃРѕР±С‹С‚РёСЏ `IMainView`
+- РїРѕ `Start3DClicked` Р·Р°РїСѓСЃС‚РёС‚СЊ 3D (С‡РµСЂРµР· ViewportPresenter)
+- РїРѕ `GridToggled` Рё `AxesToggled` РѕР±РЅРѕРІР»СЏС‚СЊ RenderSettings Рё РїСЂРѕСЃРёС‚СЊ РїРµСЂРµСЂРёСЃРѕРІРєСѓ
 
 ### `ViewportPresenter`
-Presenter 3D-вьюпорта.
+Presenter 3D-РІСЊСЋРїРѕСЂС‚Р°.
 
-Задачи:
-- создать `IGLView` и встроить его через `IMainView.AttachViewport(glView)`
-- запустить рендер: `glView.StartRendering(renderer)`
-- подключить ввод: события мыши `IGLView` → `MouseController`
-- при resize: обновить камеру/проекцию/viewport и вызвать `RequestRender()`
+Р—Р°РґР°С‡Рё:
+- СЃРѕР·РґР°С‚СЊ `IGLView` Рё РІСЃС‚СЂРѕРёС‚СЊ РµРіРѕ С‡РµСЂРµР· `IMainView.AttachViewport(glView)`
+- Р·Р°РїСѓСЃС‚РёС‚СЊ СЂРµРЅРґРµСЂ: `glView.StartRendering(renderer)`
+- РїРѕРґРєР»СЋС‡РёС‚СЊ РІРІРѕРґ: СЃРѕР±С‹С‚РёСЏ РјС‹С€Рё `IGLView` в†’ `MouseController`
+- РїСЂРё resize: РѕР±РЅРѕРІРёС‚СЊ РєР°РјРµСЂСѓ/РїСЂРѕРµРєС†РёСЋ/viewport Рё РІС‹Р·РІР°С‚СЊ `RequestRender()`
 
-## Views — `mvp/Views`
+## Views вЂ” `mvp/Views`
 ### `GLView`
-View-компонент OpenGL внутри WinForms на базе `OpenTK.WinForms.GLControl`.
+View-РєРѕРјРїРѕРЅРµРЅС‚ OpenGL РІРЅСѓС‚СЂРё WinForms РЅР° Р±Р°Р·Рµ `OpenTK.WinForms.GLControl`.
 
-Задачи:
-- быть "хостом" OpenGL-контекста
-- прокидывать события мыши наружу
-- запускать/останавливать рендер (обычно через Timer, $\approx 60$ FPS)
-- вызывать `IRenderer.Render()` в Paint и `SwapBuffers()`
+Р—Р°РґР°С‡Рё:
+- Р±С‹С‚СЊ "С…РѕСЃС‚РѕРј" OpenGL-РєРѕРЅС‚РµРєСЃС‚Р°
+- РїСЂРѕРєРёРґС‹РІР°С‚СЊ СЃРѕР±С‹С‚РёСЏ РјС‹С€Рё РЅР°СЂСѓР¶Сѓ
+- Р·Р°РїСѓСЃРєР°С‚СЊ/РѕСЃС‚Р°РЅР°РІР»РёРІР°С‚СЊ СЂРµРЅРґРµСЂ (РѕР±С‹С‡РЅРѕ С‡РµСЂРµР· Timer, $\approx 60$ FPS)
+- РІС‹Р·С‹РІР°С‚СЊ `IRenderer.Render()` РІ Paint Рё `SwapBuffers()`
 
-## Rendering — `mvp/Rendering`
+## Rendering вЂ” `mvp/Rendering`
 ### `SceneRenderer : IRenderer`
-Центральный рендерер сцены.
+Р¦РµРЅС‚СЂР°Р»СЊРЅС‹Р№ СЂРµРЅРґРµСЂРµСЂ СЃС†РµРЅС‹.
 
-Держит:
+Р”РµСЂР¶РёС‚:
 - `Camera` (Core)
 - `SceneModel` (Models)
 - `RenderSettings` (Rendering)
 - `LineShader`, `GridRenderer`, `AxesRenderer`
 
-Рисует каждый кадр:
-- `GridRenderer` если `RenderSettings.ShowGrid == true`
-- `AxesRenderer` если `RenderSettings.ShowAxes == true`
+Р РёСЃСѓРµС‚ РєР°Р¶РґС‹Р№ РєР°РґСЂ:
+- `GridRenderer` РµСЃР»Рё `RenderSettings.ShowGrid == true`
+- `AxesRenderer` РµСЃР»Рё `RenderSettings.ShowAxes == true`
 
 ### `GridRenderer`
-Рисует сетку в плоскости $XZ$ (обычно $y = 0$).
-- `Build()` создаёт геометрию линий 1 раз
-- `Render(mvp)` рисует линии через `LineShader`
+Р РёСЃСѓРµС‚ СЃРµС‚РєСѓ РІ РїР»РѕСЃРєРѕСЃС‚Рё $XZ$ (РѕР±С‹С‡РЅРѕ $y = 0$).
+- `Build()` СЃРѕР·РґР°С‘С‚ РіРµРѕРјРµС‚СЂРёСЋ Р»РёРЅРёР№ 1 СЂР°Р·
+- `Render(mvp)` СЂРёСЃСѓРµС‚ Р»РёРЅРёРё С‡РµСЂРµР· `LineShader`
 
 ### `AxesRenderer`
-Рисует оси координат из (0,0,0) в +X, +Y, +Z.
-- `Build()` создаёт геометрию 1 раз
-- `Render(mvp)` рисует линии через `LineShader`
+Р РёСЃСѓРµС‚ РѕСЃРё РєРѕРѕСЂРґРёРЅР°С‚ РёР· (0,0,0) РІ +X, +Y, +Z.
+- `Build()` СЃРѕР·РґР°С‘С‚ РіРµРѕРјРµС‚СЂРёСЋ 1 СЂР°Р·
+- `Render(mvp)` СЂРёСЃСѓРµС‚ Р»РёРЅРёРё С‡РµСЂРµР· `LineShader`
 
 ### `LineShader`
-Минимальный шейдер линий:
-- атрибуты: position (vec3), color (vec4)
-- uniform: MVP матрица
+РњРёРЅРёРјР°Р»СЊРЅС‹Р№ С€РµР№РґРµСЂ Р»РёРЅРёР№:
+- Р°С‚СЂРёР±СѓС‚С‹: position (vec3), color (vec4)
+- uniform: MVP РјР°С‚СЂРёС†Р°
 
 ### `RenderSettings`
-Единое место параметров:
-- визуальные флаги: `ShowGrid`, `ShowAxes`
-- параметры сетки/осей
-- скорости управления: orbit/pan/zoom
-- параметры проекции: FOV/near/far
-- ограничения дистанции
+Р•РґРёРЅРѕРµ РјРµСЃС‚Рѕ РїР°СЂР°РјРµС‚СЂРѕРІ:
+- РІРёР·СѓР°Р»СЊРЅС‹Рµ С„Р»Р°РіРё: `ShowGrid`, `ShowAxes`
+- РїР°СЂР°РјРµС‚СЂС‹ СЃРµС‚РєРё/РѕСЃРµР№
+- СЃРєРѕСЂРѕСЃС‚Рё СѓРїСЂР°РІР»РµРЅРёСЏ: orbit/pan/zoom
+- РїР°СЂР°РјРµС‚СЂС‹ РїСЂРѕРµРєС†РёРё: FOV/near/far
+- РѕРіСЂР°РЅРёС‡РµРЅРёСЏ РґРёСЃС‚Р°РЅС†РёРё
 
-## Models — `mvp/Models`
+## Models вЂ” `mvp/Models`
 ### `SceneModel`
-Хранит список объектов сцены (на MVP может быть почти пустым).
+РҐСЂР°РЅРёС‚ СЃРїРёСЃРѕРє РѕР±СЉРµРєС‚РѕРІ СЃС†РµРЅС‹ (РЅР° MVP РјРѕР¶РµС‚ Р±С‹С‚СЊ РїРѕС‡С‚Рё РїСѓСЃС‚С‹Рј).
 
 ### `SceneObject`
-Минимальная сущность объекта сцены (id/тип/трансформ и т.д. — расширяемо).
+РњРёРЅРёРјР°Р»СЊРЅР°СЏ СЃСѓС‰РЅРѕСЃС‚СЊ РѕР±СЉРµРєС‚Р° СЃС†РµРЅС‹ (id/С‚РёРї/С‚СЂР°РЅСЃС„РѕСЂРј Рё С‚.Рґ. вЂ” СЂР°СЃС€РёСЂСЏРµРјРѕ).
 
 ### `CameraModel`
-Модель параметров камеры (если нужно хранить/сериализовать отдельно от Core.Camera).
+РњРѕРґРµР»СЊ РїР°СЂР°РјРµС‚СЂРѕРІ РєР°РјРµСЂС‹ (РµСЃР»Рё РЅСѓР¶РЅРѕ С…СЂР°РЅРёС‚СЊ/СЃРµСЂРёР°Р»РёР·РѕРІР°С‚СЊ РѕС‚РґРµР»СЊРЅРѕ РѕС‚ Core.Camera).
 
-## Core — `mvp/Core`
+## Core вЂ” `mvp/Core`
 ### `Camera`
-Состояние камеры:
+РЎРѕСЃС‚РѕСЏРЅРёРµ РєР°РјРµСЂС‹:
 - target, distance, yaw/pitch
-- вычисление view/projection матриц
-- управление: orbit/pan/zoom
+- РІС‹С‡РёСЃР»РµРЅРёРµ view/projection РјР°С‚СЂРёС†
+- СѓРїСЂР°РІР»РµРЅРёРµ: orbit/pan/zoom
 - resize/aspect
 
 ### `MathUtil`
-Математические утилиты: клампы, углы, матрицы, векторы и т.д.
+РњР°С‚РµРјР°С‚РёС‡РµСЃРєРёРµ СѓС‚РёР»РёС‚С‹: РєР»Р°РјРїС‹, СѓРіР»С‹, РјР°С‚СЂРёС†С‹, РІРµРєС‚РѕСЂС‹ Рё С‚.Рґ.
 
-## Input — `mvp/Input`
+## Input вЂ” `mvp/Input`
 ### `MouseController`
-Интерпретация ввода мыши в команды камеры.
+РРЅС‚РµСЂРїСЂРµС‚Р°С†РёСЏ РІРІРѕРґР° РјС‹С€Рё РІ РєРѕРјР°РЅРґС‹ РєР°РјРµСЂС‹.
 
-Маппинг:
-- RMB drag → orbit
-- LMB drag → pan
-- wheel → zoom
+РњР°РїРїРёРЅРі:
+- RMB drag в†’ orbit
+- LMB drag в†’ pan
+- wheel в†’ zoom
 
-После изменения камеры вызывает callback `RequestRender()`.
+РџРѕСЃР»Рµ РёР·РјРµРЅРµРЅРёСЏ РєР°РјРµСЂС‹ РІС‹Р·С‹РІР°РµС‚ callback `RequestRender()`.
 
-## Главные сценарии (потоки событий)
-### 1) Запуск 3D
-`btnStart3D.Click` → `IMainView.Start3DClicked` → `MainPresenter` → `ViewportPresenter`:
-- создать `GLView : IGLView`
+## Р“Р»Р°РІРЅС‹Рµ СЃС†РµРЅР°СЂРёРё (РїРѕС‚РѕРєРё СЃРѕР±С‹С‚РёР№)
+### 1) Р—Р°РїСѓСЃРє 3D
+`btnStart3D.Click` в†’ `IMainView.Start3DClicked` в†’ `MainPresenter` в†’ `ViewportPresenter`:
+- СЃРѕР·РґР°С‚СЊ `GLView : IGLView`
 - `FormMain.AttachViewport(glView)`
 - `glView.StartRendering(sceneRenderer)`
-- первый кадр
+- РїРµСЂРІС‹Р№ РєР°РґСЂ
 
-### 2) Переключение сетки/осей
-`chkGrid.CheckedChanged` → `GridToggled` → Presenter:
+### 2) РџРµСЂРµРєР»СЋС‡РµРЅРёРµ СЃРµС‚РєРё/РѕСЃРµР№
+`chkGrid.CheckedChanged` в†’ `GridToggled` в†’ Presenter:
 - `RenderSettings.ShowGrid = IsGridEnabled`
 - `RequestRender()`
 
-`chkAxes.CheckedChanged` → `AxesToggled` → Presenter:
+`chkAxes.CheckedChanged` в†’ `AxesToggled` в†’ Presenter:
 - `RenderSettings.ShowAxes = IsAxesEnabled`
 - `RequestRender()`
 
-### 3) Управление мышью
-События мыши `IGLView` → `MouseController`:
-- обновляет `Camera`
-- вызывает `RequestRender()`
+### 3) РЈРїСЂР°РІР»РµРЅРёРµ РјС‹С€СЊСЋ
+РЎРѕР±С‹С‚РёСЏ РјС‹С€Рё `IGLView` в†’ `MouseController`:
+- РѕР±РЅРѕРІР»СЏРµС‚ `Camera`
+- РІС‹Р·С‹РІР°РµС‚ `RequestRender()`
 
 ### 4) Resize
-`GLControl.Resize` → `IGLView.ViewportResized` (или прямой вызов Presenter) → Presenter:
-- обновляет camera aspect / projection
+`GLControl.Resize` в†’ `IGLView.ViewportResized` (РёР»Рё РїСЂСЏРјРѕР№ РІС‹Р·РѕРІ Presenter) в†’ Presenter:
+- РѕР±РЅРѕРІР»СЏРµС‚ camera aspect / projection
 - `renderer.Resize(w, h)`
 - `RequestRender()`
 
-## Обозначения математики (для документации)
-- Сетка лежит в плоскости $XZ$ при $y = 0$.
-- Оси: отрезки $(0,0,0)\rightarrow(L,0,0)$, $(0,0,0)\rightarrow(0,L,0)$, $(0,0,0)\rightarrow(0,0,L)$.
-- Рендер линий использует матрицу $MVP$, где $MVP = P \cdot V \cdot M$ (порядок зависит от соглашения в коде и OpenTK).
+## РћР±РѕР·РЅР°С‡РµРЅРёСЏ РјР°С‚РµРјР°С‚РёРєРё (РґР»СЏ РґРѕРєСѓРјРµРЅС‚Р°С†РёРё)
+- РЎРµС‚РєР° Р»РµР¶РёС‚ РІ РїР»РѕСЃРєРѕСЃС‚Рё $XZ$ РїСЂРё $y = 0$.
+- РћСЃРё: РѕС‚СЂРµР·РєРё $(0,0,0)\rightarrow(L,0,0)$, $(0,0,0)\rightarrow(0,L,0)$, $(0,0,0)\rightarrow(0,0,L)$.
+- Р РµРЅРґРµСЂ Р»РёРЅРёР№ РёСЃРїРѕР»СЊР·СѓРµС‚ РјР°С‚СЂРёС†Сѓ $MVP$, РіРґРµ $MVP = P \cdot V \cdot M$ (РїРѕСЂСЏРґРѕРє Р·Р°РІРёСЃРёС‚ РѕС‚ СЃРѕРіР»Р°С€РµРЅРёСЏ РІ РєРѕРґРµ Рё OpenTK).
 
-- После каждого обновления: записать отчет в AGENTS.md (что изменили, какие файлы трогали, какие ошибки/фиксы, что проверить при запуске).
+- РџРѕСЃР»Рµ РєР°Р¶РґРѕРіРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ: Р·Р°РїРёСЃР°С‚СЊ РѕС‚С‡РµС‚ РІ AGENTS.md (С‡С‚Рѕ РёР·РјРµРЅРёР»Рё, РєР°РєРёРµ С„Р°Р№Р»С‹ С‚СЂРѕРіР°Р»Рё, РєР°РєРёРµ РѕС€РёР±РєРё/С„РёРєСЃС‹, С‡С‚Рѕ РїСЂРѕРІРµСЂРёС‚СЊ РїСЂРё Р·Р°РїСѓСЃРєРµ).
 
-## Отчет по обновлениям
+## РћС‚С‡РµС‚ РїРѕ РѕР±РЅРѕРІР»РµРЅРёСЏРј

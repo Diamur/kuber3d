@@ -1,7 +1,7 @@
-﻿// FormMain.cs
+// FormMain.cs
 //
-// Главная форма приложения Kuber3D (UI слой).
-// FormMain = View (IMainView). Логика живёт в Presenter.
+// Р“Р»Р°РІРЅР°СЏ С„РѕСЂРјР° РїСЂРёР»РѕР¶РµРЅРёСЏ Kuber3D (UI СЃР»РѕР№).
+// FormMain = View (IMainView). Р›РѕРіРёРєР° Р¶РёРІС‘С‚ РІ Presenter.
 
 using System;
 using System.Windows.Forms;
@@ -23,7 +23,7 @@ namespace kuber3d
         }
 
         // =========================
-        // IMainView: события
+        // IMainView: СЃРѕР±С‹С‚РёСЏ
         // =========================
 
         public event EventHandler? Start3DClicked;
@@ -31,7 +31,7 @@ namespace kuber3d
         public event EventHandler? AxesToggled;
 
         // =========================
-        // IMainView: состояние
+        // IMainView: СЃРѕСЃС‚РѕСЏРЅРёРµ
         // =========================
 
         public bool IsGridEnabled => chkGrid.Checked;
@@ -44,7 +44,7 @@ namespace kuber3d
         }
 
         // =========================
-        // IMainView: встраивание 3D
+        // IMainView: РІСЃС‚СЂР°РёРІР°РЅРёРµ 3D
         // =========================
 
         public void AttachViewport(IGLView glView)
@@ -60,7 +60,7 @@ namespace kuber3d
         }
 
         // =========================
-        // IMainView: сообщения/статус
+        // IMainView: СЃРѕРѕР±С‰РµРЅРёСЏ/СЃС‚Р°С‚СѓСЃ
         // =========================
 
         public void ShowMessage(string text)
@@ -70,20 +70,20 @@ namespace kuber3d
 
         public void SetStatus(string text)
         {
-            // MVP: можно выводить в заголовок окна.
-            // Позже заменим на status-strip.
-            Text = string.IsNullOrWhiteSpace(text) ? "Kuber3D" : $"Kuber3D — {text}";
+            // MVP: РјРѕР¶РЅРѕ РІС‹РІРѕРґРёС‚СЊ РІ Р·Р°РіРѕР»РѕРІРѕРє РѕРєРЅР°.
+            // РџРѕР·Р¶Рµ Р·Р°РјРµРЅРёРј РЅР° status-strip.
+            Text = string.IsNullOrWhiteSpace(text) ? "Kuber3D" : $"Kuber3D вЂ” {text}";
         }
 
         // =========================
-        // Жизненный цикл формы
+        // Р–РёР·РЅРµРЅРЅС‹Р№ С†РёРєР» С„РѕСЂРјС‹
         // =========================
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            // Пробрасываем события UI наружу (Presenter подписан на IMainView события)
+            // РџСЂРѕР±СЂР°СЃС‹РІР°РµРј СЃРѕР±С‹С‚РёСЏ UI РЅР°СЂСѓР¶Сѓ (Presenter РїРѕРґРїРёСЃР°РЅ РЅР° IMainView СЃРѕР±С‹С‚РёСЏ)
             btnStart3D.Click += (_, __) => Start3DClicked?.Invoke(this, EventArgs.Empty);
             chkGrid.CheckedChanged += (_, __) => GridToggled?.Invoke(this, EventArgs.Empty);
             chkAxes.CheckedChanged += (_, __) => AxesToggled?.Invoke(this, EventArgs.Empty);

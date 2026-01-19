@@ -1,33 +1,33 @@
 // mvp/Presenters/MainPresenter.cs
 //
-// MainPresenter — главный Presenter приложения (центр управления в MVP).
+// MainPresenter вЂ” РіР»Р°РІРЅС‹Р№ Presenter РїСЂРёР»РѕР¶РµРЅРёСЏ (С†РµРЅС‚СЂ СѓРїСЂР°РІР»РµРЅРёСЏ РІ MVP).
 //
-// Роли (очень важно понять логику):
-// 1) FormMain (View) — ТОЛЬКО UI:
-//    - содержит кнопки/чекбоксы/панели
-//    - генерирует события: "нажали 3D", "вкл/выкл сетку", "вкл/выкл оси"
-//    - предоставляет Presenter'у доступ к pnlViewport (куда встраивать 3D-контрол)
+// Р РѕР»Рё (РѕС‡РµРЅСЊ РІР°Р¶РЅРѕ РїРѕРЅСЏС‚СЊ Р»РѕРіРёРєСѓ):
+// 1) FormMain (View) вЂ” РўРћР›Р¬РљРћ UI:
+//    - СЃРѕРґРµСЂР¶РёС‚ РєРЅРѕРїРєРё/С‡РµРєР±РѕРєСЃС‹/РїР°РЅРµР»Рё
+//    - РіРµРЅРµСЂРёСЂСѓРµС‚ СЃРѕР±С‹С‚РёСЏ: "РЅР°Р¶Р°Р»Рё 3D", "РІРєР»/РІС‹РєР» СЃРµС‚РєСѓ", "РІРєР»/РІС‹РєР» РѕСЃРё"
+//    - РїСЂРµРґРѕСЃС‚Р°РІР»СЏРµС‚ Presenter'Сѓ РґРѕСЃС‚СѓРї Рє pnlViewport (РєСѓРґР° РІСЃС‚СЂР°РёРІР°С‚СЊ 3D-РєРѕРЅС‚СЂРѕР»)
 //
-// 2) MainPresenter — "дирижёр":
-//    - подписывается на события View
-//    - решает "что делать" при кликах
-//    - не знает ничего про OpenGL напрямую (ни GL, ни шейдеры)
-//    - управляет 3D через ViewportPresenter
+// 2) MainPresenter вЂ” "РґРёСЂРёР¶С‘СЂ":
+//    - РїРѕРґРїРёСЃС‹РІР°РµС‚СЃСЏ РЅР° СЃРѕР±С‹С‚РёСЏ View
+//    - СЂРµС€Р°РµС‚ "С‡С‚Рѕ РґРµР»Р°С‚СЊ" РїСЂРё РєР»РёРєР°С…
+//    - РЅРµ Р·РЅР°РµС‚ РЅРёС‡РµРіРѕ РїСЂРѕ OpenGL РЅР°РїСЂСЏРјСѓСЋ (РЅРё GL, РЅРё С€РµР№РґРµСЂС‹)
+//    - СѓРїСЂР°РІР»СЏРµС‚ 3D С‡РµСЂРµР· ViewportPresenter
 //
-// 3) ViewportPresenter — "внутренний" презентер 3D-вьюпорта:
-//    - создаёт GLView и встраивает его в pnlViewport
-//    - запускает/останавливает рендер
-//    - прокидывает настройки сетки/осей в рендер
-//    - подключает MouseController для ПКМ/ЛКМ/колеса
+// 3) ViewportPresenter вЂ” "РІРЅСѓС‚СЂРµРЅРЅРёР№" РїСЂРµР·РµРЅС‚РµСЂ 3D-РІСЊСЋРїРѕСЂС‚Р°:
+//    - СЃРѕР·РґР°С‘С‚ GLView Рё РІСЃС‚СЂР°РёРІР°РµС‚ РµРіРѕ РІ pnlViewport
+//    - Р·Р°РїСѓСЃРєР°РµС‚/РѕСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЂРµРЅРґРµСЂ
+//    - РїСЂРѕРєРёРґС‹РІР°РµС‚ РЅР°СЃС‚СЂРѕР№РєРё СЃРµС‚РєРё/РѕСЃРµР№ РІ СЂРµРЅРґРµСЂ
+//    - РїРѕРґРєР»СЋС‡Р°РµС‚ MouseController РґР»СЏ РџРљРњ/Р›РљРњ/РєРѕР»РµСЃР°
 //
-// MVP-минимум по требованиям:
-// - Нажатие btnStart3D -> запускаем 3D-визор
-// - chkGrid -> включает/выключает сетку
-// - chkAxes -> включает/выключает оси
-// - мышь (ПКМ/ЛКМ/колесо) — не здесь, а внутри ViewportPresenter/MouseController
+// MVP-РјРёРЅРёРјСѓРј РїРѕ С‚СЂРµР±РѕРІР°РЅРёСЏРј:
+// - РќР°Р¶Р°С‚РёРµ btnStart3D -> Р·Р°РїСѓСЃРєР°РµРј 3D-РІРёР·РѕСЂ
+// - chkGrid -> РІРєР»СЋС‡Р°РµС‚/РІС‹РєР»СЋС‡Р°РµС‚ СЃРµС‚РєСѓ
+// - chkAxes -> РІРєР»СЋС‡Р°РµС‚/РІС‹РєР»СЋС‡Р°РµС‚ РѕСЃРё
+// - РјС‹С€СЊ (РџРљРњ/Р›РљРњ/РєРѕР»РµСЃРѕ) вЂ” РЅРµ Р·РґРµСЃСЊ, Р° РІРЅСѓС‚СЂРё ViewportPresenter/MouseController
 //
-// Важно:
-// MainPresenter должен быть "тонким": подписки + команды ViewportPresenter.
+// Р’Р°Р¶РЅРѕ:
+// MainPresenter РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ "С‚РѕРЅРєРёРј": РїРѕРґРїРёСЃРєРё + РєРѕРјР°РЅРґС‹ ViewportPresenter.
 
 // mvp/Presenters/MainPresenter.cs
 
@@ -54,14 +54,14 @@ namespace kuber3d.Presenters
         {
             _view = view;
 
-            // Минимальные модели/настройки
+            // РњРёРЅРёРјР°Р»СЊРЅС‹Рµ РјРѕРґРµР»Рё/РЅР°СЃС‚СЂРѕР№РєРё
             _scene = new SceneModel();
             _settings = new RenderSettings();
             _camera = new Camera();
 
             _viewport = new ViewportPresenter(_scene, _settings, _camera);
 
-            // Подписки на события View — строго по IMainView
+            // РџРѕРґРїРёСЃРєРё РЅР° СЃРѕР±С‹С‚РёСЏ View вЂ” СЃС‚СЂРѕРіРѕ РїРѕ IMainView
             _view.Start3DClicked += (_, __) => Start3D();
             _view.GridToggled += (_, __) => SetGridEnabled(_view.IsGridEnabled);
             _view.AxesToggled += (_, __) => SetAxesEnabled(_view.IsAxesEnabled);
@@ -69,7 +69,7 @@ namespace kuber3d.Presenters
 
         public void Init()
         {
-            // Синхронизируем настройки по состоянию чекбоксов
+            // РЎРёРЅС…СЂРѕРЅРёР·РёСЂСѓРµРј РЅР°СЃС‚СЂРѕР№РєРё РїРѕ СЃРѕСЃС‚РѕСЏРЅРёСЋ С‡РµРєР±РѕРєСЃРѕРІ
             SetGridEnabled(_view.IsGridEnabled);
             SetAxesEnabled(_view.IsAxesEnabled);
 
@@ -82,17 +82,17 @@ namespace kuber3d.Presenters
             if (_is3DStarted)
                 return;
 
-            // 1) Создаём GLView/Renderer (внутри viewport)
+            // 1) РЎРѕР·РґР°С‘Рј GLView/Renderer (РІРЅСѓС‚СЂРё viewport)
             var glView = _viewport.EnsureViewportCreated();
 
-            // 2) Встраиваем GLView в pnlViewport (это обязанность View)
+            // 2) Р’СЃС‚СЂР°РёРІР°РµРј GLView РІ pnlViewport (СЌС‚Рѕ РѕР±СЏР·Р°РЅРЅРѕСЃС‚СЊ View)
             _view.AttachViewport(glView);
 
-            // 3) Применяем настройки
+            // 3) РџСЂРёРјРµРЅСЏРµРј РЅР°СЃС‚СЂРѕР№РєРё
             _viewport.SetGridVisible(_settings.ShowGrid);
             _viewport.SetAxesVisible(_settings.ShowAxes);
 
-            // 4) Стартуем рендер
+            // 4) РЎС‚Р°СЂС‚СѓРµРј СЂРµРЅРґРµСЂ
             _viewport.Start();
 
             _is3DStarted = true;

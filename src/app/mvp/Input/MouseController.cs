@@ -1,15 +1,15 @@
 // mvp/Input/MouseController.cs
 //
-// MouseController — связывает события мыши (на IGLView.Control) с Core.Camera.
-// Здесь нет OpenGL и рендера — только ввод.
-// По умолчанию:
+// MouseController вЂ” СЃРІСЏР·С‹РІР°РµС‚ СЃРѕР±С‹С‚РёСЏ РјС‹С€Рё (РЅР° IGLView.Control) СЃ Core.Camera.
+// Р—РґРµСЃСЊ РЅРµС‚ OpenGL Рё СЂРµРЅРґРµСЂР° вЂ” С‚РѕР»СЊРєРѕ РІРІРѕРґ.
+// РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ:
 //  - LMB = Orbit
 //  - MMB = Pan
-//  - Shift + LMB = Pan (удобно без средней кнопки)
+//  - Shift + LMB = Pan (СѓРґРѕР±РЅРѕ Р±РµР· СЃСЂРµРґРЅРµР№ РєРЅРѕРїРєРё)
 //  - Wheel = Zoom
 //
-// Важно: фикс "стартового рывка" — после входа мыши/клика мы сначала инициализируем
-// lastX/lastY и только потом считаем dx/dy.
+// Р’Р°Р¶РЅРѕ: С„РёРєСЃ "СЃС‚Р°СЂС‚РѕРІРѕРіРѕ СЂС‹РІРєР°" вЂ” РїРѕСЃР»Рµ РІС…РѕРґР° РјС‹С€Рё/РєР»РёРєР° РјС‹ СЃРЅР°С‡Р°Р»Р° РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј
+// lastX/lastY Рё С‚РѕР»СЊРєРѕ РїРѕС‚РѕРј СЃС‡РёС‚Р°РµРј dx/dy.
 
 using System;
 using System.Windows.Forms;
@@ -45,7 +45,7 @@ namespace kuber3d.Input
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _requestRender = requestRender ?? throw new ArgumentNullException(nameof(requestRender));
 
-            // Убираем "песочные часы" если вдруг WinForms считает, что занято
+            // РЈР±РёСЂР°РµРј "РїРµСЃРѕС‡РЅС‹Рµ С‡Р°СЃС‹" РµСЃР»Рё РІРґСЂСѓРі WinForms СЃС‡РёС‚Р°РµС‚, С‡С‚Рѕ Р·Р°РЅСЏС‚Рѕ
             _target.UseWaitCursor = false;
             _target.Cursor = Cursors.Default;
 
@@ -59,13 +59,13 @@ namespace kuber3d.Input
 
         private void OnMouseEnter(object? sender, EventArgs e)
         {
-            // При входе мыши сбрасываем инициализацию — это убирает резкий скачок dx/dy.
+            // РџСЂРё РІС…РѕРґРµ РјС‹С€Рё СЃР±СЂР°СЃС‹РІР°РµРј РёРЅРёС†РёР°Р»РёР·Р°С†РёСЋ вЂ” СЌС‚Рѕ СѓР±РёСЂР°РµС‚ СЂРµР·РєРёР№ СЃРєР°С‡РѕРє dx/dy.
             _mouseInited = false;
         }
 
         private void OnMouseLeave(object? sender, EventArgs e)
         {
-            // На выходе отпускаем кнопки, чтобы не "залипало"
+            // РќР° РІС‹С…РѕРґРµ РѕС‚РїСѓСЃРєР°РµРј РєРЅРѕРїРєРё, С‡С‚РѕР±С‹ РЅРµ "Р·Р°Р»РёРїР°Р»Рѕ"
             _lmbDown = false;
             _mmbDown = false;
             _mouseInited = false;
@@ -77,10 +77,10 @@ namespace kuber3d.Input
             if (e.Button == MouseButtons.Left) _lmbDown = true;
             if (e.Button == MouseButtons.Middle) _mmbDown = true;
 
-            // фикс рывка при нажатии
+            // С„РёРєСЃ СЂС‹РІРєР° РїСЂРё РЅР°Р¶Р°С‚РёРё
             _mouseInited = false;
 
-            // чтобы продолжать получать события даже если курсор уехал за пределы контрола
+            // С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶Р°С‚СЊ РїРѕР»СѓС‡Р°С‚СЊ СЃРѕР±С‹С‚РёСЏ РґР°Р¶Рµ РµСЃР»Рё РєСѓСЂСЃРѕСЂ СѓРµС…Р°Р» Р·Р° РїСЂРµРґРµР»С‹ РєРѕРЅС‚СЂРѕР»Р°
             _target.Capture = true;
         }
 
@@ -97,7 +97,7 @@ namespace kuber3d.Input
         {
             if (!_lmbDown && !_mmbDown)
             {
-                // если кнопки не зажаты — просто синхронизируем last, чтобы не ловить скачок
+                // РµСЃР»Рё РєРЅРѕРїРєРё РЅРµ Р·Р°Р¶Р°С‚С‹ вЂ” РїСЂРѕСЃС‚Рѕ СЃРёРЅС…СЂРѕРЅРёР·РёСЂСѓРµРј last, С‡С‚РѕР±С‹ РЅРµ Р»РѕРІРёС‚СЊ СЃРєР°С‡РѕРє
                 _lastX = e.X;
                 _lastY = e.Y;
                 _mouseInited = true;
@@ -119,21 +119,21 @@ namespace kuber3d.Input
 
             bool shift = IsShift();
 
-            // Orbit: ЛКМ (без Shift)
+            // Orbit: Р›РљРњ (Р±РµР· Shift)
             if (_lmbDown && !shift)
             {
-                // В Camera.Orbit мы передаем dx/dy в пикселях — сама камера умножит на sensitivity.
-                // Но у нас есть настройка чувствительности в RenderSettings.
+                // Р’ Camera.Orbit РјС‹ РїРµСЂРµРґР°РµРј dx/dy РІ РїРёРєСЃРµР»СЏС… вЂ” СЃР°РјР° РєР°РјРµСЂР° СѓРјРЅРѕР¶РёС‚ РЅР° sensitivity.
+                // РќРѕ Сѓ РЅР°СЃ РµСЃС‚СЊ РЅР°СЃС‚СЂРѕР№РєР° С‡СѓРІСЃС‚РІРёС‚РµР»СЊРЅРѕСЃС‚Рё РІ RenderSettings.
                 _camera.Orbit(dx, dy, _settings.OrbitSpeed);
                 _requestRender();
                 return;
             }
 
-            // Pan: СКМ или Shift+ЛКМ
+            // Pan: РЎРљРњ РёР»Рё Shift+Р›РљРњ
             if (_mmbDown || (_lmbDown && shift))
             {
-                // Чем дальше камера — тем быстрее должен быть пан (внутри Camera.Pan это уже можно учесть,
-                // но на MVP уровне даем скорость сюда).
+                // Р§РµРј РґР°Р»СЊС€Рµ РєР°РјРµСЂР° вЂ” С‚РµРј Р±С‹СЃС‚СЂРµРµ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РїР°РЅ (РІРЅСѓС‚СЂРё Camera.Pan СЌС‚Рѕ СѓР¶Рµ РјРѕР¶РЅРѕ СѓС‡РµСЃС‚СЊ,
+                // РЅРѕ РЅР° MVP СѓСЂРѕРІРЅРµ РґР°РµРј СЃРєРѕСЂРѕСЃС‚СЊ СЃСЋРґР°).
                 _camera.Pan(dx, dy, _settings.PanSpeed);
                 _requestRender();
                 return;
@@ -142,7 +142,7 @@ namespace kuber3d.Input
 
         private void OnMouseWheel(object? sender, MouseEventArgs e)
         {
-            // Zoom: wheelDelta обычно +/-120
+            // Zoom: wheelDelta РѕР±С‹С‡РЅРѕ +/-120
             _camera.Zoom(e.Delta, _settings.ZoomSpeed);
             _requestRender();
         }

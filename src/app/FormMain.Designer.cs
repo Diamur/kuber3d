@@ -1,4 +1,4 @@
-﻿namespace kuber3d
+namespace kuber3d
 {
     partial class FormMain
     {
@@ -76,7 +76,7 @@
             chkAxes.Name = "chkAxes";
             chkAxes.Size = new Size(48, 19);
             chkAxes.TabIndex = 1;
-            chkAxes.Text = "Оси";
+            chkAxes.Text = "РћСЃРё";
             chkAxes.UseVisualStyleBackColor = true;
             // 
             // chkGrid
@@ -89,7 +89,7 @@
             chkGrid.Name = "chkGrid";
             chkGrid.Size = new Size(57, 19);
             chkGrid.TabIndex = 0;
-            chkGrid.Text = "Сетка";
+            chkGrid.Text = "РЎРµС‚РєР°";
             chkGrid.UseVisualStyleBackColor = true;
             // 
             // splitMain

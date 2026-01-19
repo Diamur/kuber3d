@@ -1,28 +1,28 @@
 // mvp/Presenters/ViewportPresenter.cs
 //
-// ViewportPresenter — презентер "правой части" (вьюпорта / pnlViewport).
-// Его задача: поднять 3D-визор (GLView) внутри pnlViewport, связать:
+// ViewportPresenter вЂ” РїСЂРµР·РµРЅС‚РµСЂ "РїСЂР°РІРѕР№ С‡Р°СЃС‚Рё" (РІСЊСЋРїРѕСЂС‚Р° / pnlViewport).
+// Р•РіРѕ Р·Р°РґР°С‡Р°: РїРѕРґРЅСЏС‚СЊ 3D-РІРёР·РѕСЂ (GLView) РІРЅСѓС‚СЂРё pnlViewport, СЃРІСЏР·Р°С‚СЊ:
 //
-// 1) Camera (Core)           — текущее положение/поворот/дистанция (матрицы View/Proj)
-// 2) SceneModel (Model)      — данные сцены (пока минимум, позже объекты, линии, плоскости)
-// 3) RenderSettings (Rendering) — флаги: сетка/оси + чувствительность мыши
-// 4) SceneRenderer (Rendering)  — кто рисует (сетка, оси, потом объекты)
-// 5) MouseController (Input)    — мышь:
-//     - ПКМ: orbit (поворот)
-//     - ЛКМ: pan   (смещение)
-//     - колесо: zoom (масштаб/дистанция)
+// 1) Camera (Core)           вЂ” С‚РµРєСѓС‰РµРµ РїРѕР»РѕР¶РµРЅРёРµ/РїРѕРІРѕСЂРѕС‚/РґРёСЃС‚Р°РЅС†РёСЏ (РјР°С‚СЂРёС†С‹ View/Proj)
+// 2) SceneModel (Model)      вЂ” РґР°РЅРЅС‹Рµ СЃС†РµРЅС‹ (РїРѕРєР° РјРёРЅРёРјСѓРј, РїРѕР·Р¶Рµ РѕР±СЉРµРєС‚С‹, Р»РёРЅРёРё, РїР»РѕСЃРєРѕСЃС‚Рё)
+// 3) RenderSettings (Rendering) вЂ” С„Р»Р°РіРё: СЃРµС‚РєР°/РѕСЃРё + С‡СѓРІСЃС‚РІРёС‚РµР»СЊРЅРѕСЃС‚СЊ РјС‹С€Рё
+// 4) SceneRenderer (Rendering)  вЂ” РєС‚Рѕ СЂРёСЃСѓРµС‚ (СЃРµС‚РєР°, РѕСЃРё, РїРѕС‚РѕРј РѕР±СЉРµРєС‚С‹)
+// 5) MouseController (Input)    вЂ” РјС‹С€СЊ:
+//     - РџРљРњ: orbit (РїРѕРІРѕСЂРѕС‚)
+//     - Р›РљРњ: pan   (СЃРјРµС‰РµРЅРёРµ)
+//     - РєРѕР»РµСЃРѕ: zoom (РјР°СЃС€С‚Р°Р±/РґРёСЃС‚Р°РЅС†РёСЏ)
 //
-// Важно по MVP:
-// - ViewportPresenter НЕ знает про chkGrid/chkAxes напрямую.
-//   Эти галки живут в FormMain и их состояние передаётся сюда через методы SetGridVisible/SetAxesVisible.
-// - ViewportPresenter НЕ знает про кнопку btnStart3D напрямую.
-//   Нажатие кнопки обрабатывает MainPresenter, а он уже вызывает AttachTo/Start.
+// Р’Р°Р¶РЅРѕ РїРѕ MVP:
+// - ViewportPresenter РќР• Р·РЅР°РµС‚ РїСЂРѕ chkGrid/chkAxes РЅР°РїСЂСЏРјСѓСЋ.
+//   Р­С‚Рё РіР°Р»РєРё Р¶РёРІСѓС‚ РІ FormMain Рё РёС… СЃРѕСЃС‚РѕСЏРЅРёРµ РїРµСЂРµРґР°С‘С‚СЃСЏ СЃСЋРґР° С‡РµСЂРµР· РјРµС‚РѕРґС‹ SetGridVisible/SetAxesVisible.
+// - ViewportPresenter РќР• Р·РЅР°РµС‚ РїСЂРѕ РєРЅРѕРїРєСѓ btnStart3D РЅР°РїСЂСЏРјСѓСЋ.
+//   РќР°Р¶Р°С‚РёРµ РєРЅРѕРїРєРё РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚ MainPresenter, Р° РѕРЅ СѓР¶Рµ РІС‹Р·С‹РІР°РµС‚ AttachTo/Start.
 //
-// Минимум функционала после запуска 3D:
-// - старт 3D-визора
-// - вкл/выкл сетку
-// - вкл/выкл оси
-// - мышь: orbit/pan/zoom
+// РњРёРЅРёРјСѓРј С„СѓРЅРєС†РёРѕРЅР°Р»Р° РїРѕСЃР»Рµ Р·Р°РїСѓСЃРєР° 3D:
+// - СЃС‚Р°СЂС‚ 3D-РІРёР·РѕСЂР°
+// - РІРєР»/РІС‹РєР» СЃРµС‚РєСѓ
+// - РІРєР»/РІС‹РєР» РѕСЃРё
+// - РјС‹С€СЊ: orbit/pan/zoom
 
 // mvp/Presenters/ViewportPresenter.cs
 
@@ -55,26 +55,26 @@ namespace kuber3d.Presenters
         }
 
         /// <summary>
-        /// Создаёт GLView и Renderer (если ещё не созданы) и возвращает GLView,
-        /// чтобы MainView мог встроить его в pnlViewport через AttachViewport().
+        /// РЎРѕР·РґР°С‘С‚ GLView Рё Renderer (РµСЃР»Рё РµС‰С‘ РЅРµ СЃРѕР·РґР°РЅС‹) Рё РІРѕР·РІСЂР°С‰Р°РµС‚ GLView,
+        /// С‡С‚РѕР±С‹ MainView РјРѕРі РІСЃС‚СЂРѕРёС‚СЊ РµРіРѕ РІ pnlViewport С‡РµСЂРµР· AttachViewport().
         /// </summary>
         public IGLView EnsureViewportCreated()
         {
             if (_glView != null)
                 return _glView;
 
-            // Реальная реализация IGLView будет в mvp/Views/GLView.cs
+            // Р РµР°Р»СЊРЅР°СЏ СЂРµР°Р»РёР·Р°С†РёСЏ IGLView Р±СѓРґРµС‚ РІ mvp/Views/GLView.cs
             _glView = new kuber3d.Views.GLView();
 
-            // Реальная реализация IRenderer будет в mvp/Rendering/SceneRenderer.cs
-            // (она должна реализовывать IRenderer и брать scene/camera/settings через конструктор)
+            // Р РµР°Р»СЊРЅР°СЏ СЂРµР°Р»РёР·Р°С†РёСЏ IRenderer Р±СѓРґРµС‚ РІ mvp/Rendering/SceneRenderer.cs
+            // (РѕРЅР° РґРѕР»Р¶РЅР° СЂРµР°Р»РёР·РѕРІС‹РІР°С‚СЊ IRenderer Рё Р±СЂР°С‚СЊ scene/camera/settings С‡РµСЂРµР· РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ)
             var sceneRenderer = new SceneRenderer();
             sceneRenderer.Bind(_camera, _scene, _settings);
-            _renderer = sceneRenderer; // _renderer пусть остаётся IRenderer
+            _renderer = sceneRenderer; // _renderer РїСѓСЃС‚СЊ РѕСЃС‚Р°С‘С‚СЃСЏ IRenderer
 
 
 
-            // Подключаем мышь к событиям IGLView (у нас они есть в интерфейсе)
+            // РџРѕРґРєР»СЋС‡Р°РµРј РјС‹С€СЊ Рє СЃРѕР±С‹С‚РёСЏРј IGLView (Сѓ РЅР°СЃ РѕРЅРё РµСЃС‚СЊ РІ РёРЅС‚РµСЂС„РµР№СЃРµ)
             _mouse = new MouseController(
                 glView: _glView,
                 camera: _camera,
@@ -94,7 +94,7 @@ namespace kuber3d.Presenters
             if (_renderer == null)
                 throw new InvalidOperationException("Renderer was not created.");
 
-            // Запуск рендера: внутри GLView будет таймер/луп и вызовы IRenderer.Init/Resize/Render
+            // Р—Р°РїСѓСЃРє СЂРµРЅРґРµСЂР°: РІРЅСѓС‚СЂРё GLView Р±СѓРґРµС‚ С‚Р°Р№РјРµСЂ/Р»СѓРї Рё РІС‹Р·РѕРІС‹ IRenderer.Init/Resize/Render
             view.StartRendering(_renderer);
 
             _started = true;
