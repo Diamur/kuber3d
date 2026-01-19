@@ -226,3 +226,7 @@ View-РєРѕРјРїРѕРЅРµРЅС‚ OpenGL РІРЅСѓС‚СЂРё WinF
 - Тронутые файлы: `src/app/mvp/Views/GLView.cs`.
 - Ошибки/фиксы: возможная причина черного экрана — переподключение GLControl напрямую в pnlViewport, что может ломать загрузку/контекст/события; теперь встраивается GLView целиком.
 - Проверить при запуске: что GLControl.Load/Resize/Paint стабильно отрабатывают после встраивания и что сетка/оси появились.
+- Изменения: добавлено файловое логирование рендера (Log.cs) и события в GLView/SceneRenderer для трассировки цепочки загрузки/resize/render.
+- Тронутые файлы: `src/app/mvp/Core/Log.cs`, `src/app/mvp/Views/GLView.cs`, `src/app/mvp/Rendering/SceneRenderer.cs`.
+- Ошибки/фиксы: диагностируем, проходит ли цепочка Load -> Init -> Resize -> Render и где пропадает кадр.
+- Проверить при запуске: файл `kuber3d-render.log` рядом с exe, наличие строк GLView.OnGlLoad/OnGlPaint и SceneRenderer.Render.

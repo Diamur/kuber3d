@@ -15,6 +15,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using kuber3d.Contracts;
+using kuber3d.Core;
 
 // OpenTK WinForms GLControl
 using OpenTK.WinForms;
@@ -190,6 +191,7 @@ namespace kuber3d.Views
         public void StartRendering(IRenderer renderer)
         {
             _renderer = renderer;
+            Log.Info("GLView.StartRendering: renderer assigned.");
 
             // ВАЖНО:
             // GLControl.Load может сработать ДО того, как Presenter вызовет StartRendering().
@@ -200,6 +202,7 @@ namespace kuber3d.Views
                 try
                 {
                     // На всякий случай делаем контекст текущим перед Init.
+                    Log.Info("GLView.StartRendering: MakeCurrent before Init.");
                     MakeCurrent();
 
                     // Инициализируем рендерер так же "безопасно", как в Load
@@ -243,6 +246,7 @@ namespace kuber3d.Views
             if (_renderer == null) return;
 
             // Invalidate => Paint => Render
+            Log.Info("GLView.RequestRender: invalidating GLControl.");
             _gl.Invalidate();
         }
 
@@ -262,6 +266,7 @@ namespace kuber3d.Views
         {
             _isLoaded = true;		
 
+            Log.Info("GLView.OnGlLoad: control loaded, making context current.");
             MakeCurrent();
 	
             // Контекст уже создан — можно инициализировать рендерер.
@@ -277,6 +282,7 @@ namespace kuber3d.Views
             if (_renderer != null)
             {
                 _isRendering = true;
+                Log.Info("GLView.OnGlLoad: starting render timer.");
                 _timer.Start();
             }
 
@@ -289,6 +295,7 @@ namespace kuber3d.Views
 
             var w = _gl.ClientSize.Width;
             var h = _gl.ClientSize.Height;
+            Log.Info($"GLView.OnGlResize: size={w}x{h}.");
 
             // Сообщаем миру, что размер поменялся (Presenter обновит камеру Aspect)
             ViewportResized?.Invoke(this, EventArgs.Empty);
@@ -308,6 +315,7 @@ namespace kuber3d.Views
             if (_renderer == null) return;
 
             // Делаем контекст текущим и выставляем viewport
+            Log.Info("GLView.OnGlPaint: MakeCurrent + Render.");
             MakeCurrent();
 
             var w = _gl.ClientSize.Width;
