@@ -18,6 +18,7 @@ namespace kuber3d
 {
     public partial class FormMain : Form, IMainView
     {
+        private readonly IMainPresenter _presenter;
         // =========================================================
         // IMainView EVENTS (то, на что подписывается Presenter)
         // =========================================================
@@ -66,6 +67,11 @@ namespace kuber3d
             set => btnStart3D.Enabled = value;
         }
 
+        /// <summary>
+        /// Хост-панель для 3D-вьюпорта.
+        /// </summary>
+        public Control ViewportHost => pnlViewport;
+
         // =========================================================
         // ctor: привязка WinForms UI -> события MVP
         // =========================================================
@@ -89,6 +95,15 @@ namespace kuber3d
             // Чтобы колесо мыши работало стабильно:
             // при клике в правую область даём фокус панели.
             pnlViewport.MouseDown += (_, __) => pnlViewport.Focus();
+
+            _presenter = new Presenters.MainPresenter(this);
+            FormClosed += (_, __) => _presenter.Dispose();
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            _presenter.Initialize();
         }
 
         // =========================================================

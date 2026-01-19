@@ -20,6 +20,7 @@
 // но смысл/назначение обязаны совпадать.
 
 using System;
+using System.Windows.Forms;
 
 namespace kuber3d.Contracts
 {
@@ -96,6 +97,12 @@ namespace kuber3d.Contracts
         ///   glView.AsControl.Dock = DockStyle.Fill;
         /// </summary>
         void AttachViewport(IGLView glView);
+
+        /// <summary>
+        /// Хост-контейнер для вьюпорта (обычно pnlViewport).
+        /// Позволяет ViewportPresenter встроить GLView напрямую.
+        /// </summary>
+        Control ViewportHost { get; }
 
 
         // =========================

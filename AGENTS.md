@@ -217,3 +217,7 @@ View-компонент OpenGL внутри WinForms на базе `OpenTK.WinFo
 - После каждого обновления: записать отчет в AGENTS.md (что изменили, какие файлы трогали, какие ошибки/фиксы, что проверить при запуске).
 
 ## Отчет по обновлениям
+### 2025-09-25
+- Исправил wiring MVP: подключил MainPresenter в FormMain, добавил ViewportHost в контракт и параметрический конструктор ViewportPresenter. Правил: src/app/FormMain.cs, src/app/mvp/Contracts/IMainView.cs, src/app/mvp/Presenters/MainPresenter.cs, src/app/mvp/Presenters/ViewportPresenter.cs.
+- Починил рендер-пайплайн и конфигурацию: добавил Init/Resize аспект камеры, осевые цвета, синхронизацию настроек камеры, корректный MouseController. Правил: src/app/mvp/Core/Camera.cs, src/app/mvp/Input/MouseController.cs, src/app/mvp/Rendering/RenderSettings.cs, src/app/mvp/Rendering/SceneRenderer.cs, src/app/mvp/Contracts/IGLView.cs.
+- Проверить при запуске: после нажатия btnStart3D должна отображаться сетка и оси, колесо/ПКМ/ЛКМ управляют камерой.

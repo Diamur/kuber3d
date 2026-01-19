@@ -56,7 +56,7 @@ namespace kuber3d.Presenters
 
             // Подписываемся на события View (которые FormMain поднимает наружу).
             // ВНИМАНИЕ: имена событий/свойств должны совпадать с тем, что у тебя в IMainView.
-            _view.Start3DRequested += OnStart3DRequested;
+            _view.Start3DClicked += OnStart3DClicked;
             _view.GridToggled += OnGridToggled;
             _view.AxesToggled += OnAxesToggled;
         }
@@ -84,7 +84,7 @@ namespace kuber3d.Presenters
         /// Нажали кнопку "3D".
         /// Тут мы создаём/встраиваем GLView и запускаем рендер.
         /// </summary>
-        private void OnStart3DRequested(object? sender, EventArgs e)
+        private void OnStart3DClicked(object? sender, EventArgs e)
         {
             if (_is3DStarted)
             {
@@ -137,7 +137,7 @@ namespace kuber3d.Presenters
         public void Dispose()
         {
             // Отписываемся от событий, чтобы не было утечек ссылок.
-            _view.Start3DRequested -= OnStart3DRequested;
+            _view.Start3DClicked -= OnStart3DClicked;
             _view.GridToggled -= OnGridToggled;
             _view.AxesToggled -= OnAxesToggled;
 

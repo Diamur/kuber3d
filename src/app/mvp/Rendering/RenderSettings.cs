@@ -11,6 +11,8 @@
 // Никаких зависимостей от WinForms / UI здесь нет.
 // Это чистая конфигурация, которую Presenter может менять, а Renderer читать.
 
+using OpenTK.Mathematics;
+
 namespace kuber3d.Rendering
 {
     /// <summary>
@@ -64,6 +66,21 @@ namespace kuber3d.Rendering
         /// Длина осей (X/Y/Z).
         /// </summary>
         public float AxesLength { get; set; } = 5.0f;
+
+        /// <summary>
+        /// Цвет оси X.
+        /// </summary>
+        public Vector4 AxesColorX { get; set; } = Vector4.Zero;
+
+        /// <summary>
+        /// Цвет оси Y.
+        /// </summary>
+        public Vector4 AxesColorY { get; set; } = Vector4.Zero;
+
+        /// <summary>
+        /// Цвет оси Z.
+        /// </summary>
+        public Vector4 AxesColorZ { get; set; } = Vector4.Zero;
 
         // ============================
         // УПРАВЛЕНИЕ КАМЕРОЙ (мышь)

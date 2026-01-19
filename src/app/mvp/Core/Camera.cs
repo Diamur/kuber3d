@@ -69,6 +69,11 @@ namespace kuber3d.Core
         public float Near { get; set; } = 0.01f;
         public float Far { get; set; } = 2000f;
 
+        /// <summary>
+        /// Соотношение сторон (width/height) для матрицы проекции.
+        /// </summary>
+        public float Aspect { get; private set; } = 1.0f;
+
         // =========================
         // 2) Матрицы для рендера
         // =========================
@@ -99,6 +104,25 @@ namespace kuber3d.Core
 
             // Perspective: задаём FOV, соотношение сторон, near/far.
             return Matrix4.CreatePerspectiveFieldOfView(fovRad, aspect, Near, Far);
+        }
+
+        /// <summary>
+        /// Матрица проекции с использованием сохранённого Aspect.
+        /// </summary>
+        public Matrix4 GetProjectionMatrix()
+        {
+            return GetProjectionMatrix(Aspect);
+        }
+
+        /// <summary>
+        /// Обновить соотношение сторон при изменении размера вьюпорта.
+        /// </summary>
+        public void Resize(int width, int height)
+        {
+            if (width <= 0) width = 1;
+            if (height <= 0) height = 1;
+
+            Aspect = width / (float)height;
         }
 
         // =========================

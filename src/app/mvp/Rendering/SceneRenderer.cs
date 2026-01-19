@@ -95,7 +95,7 @@ namespace kuber3d.Rendering
         /// Инициализация OpenGL-ресурсов.
         /// Вызывается один раз после того, как GLView готов и контекст существует.
         /// </summary>
-        public void Initialize()
+        public void Init(int width, int height)
         {
             if (_initialized) return;
 
@@ -123,6 +123,13 @@ namespace kuber3d.Rendering
             _axes.Build();
 
             _initialized = true;
+
+            Resize(width, height);
+        }
+
+        public void Initialize()
+        {
+            Init(1, 1);
         }
 
         /// <summary>

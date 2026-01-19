@@ -37,13 +37,16 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using kuber3d.Contracts;
-using kuber3d.Views;
+using kuber3d.Core;
+using kuber3d.Rendering;
 
 namespace kuber3d.Input
 {
     public sealed class MouseController : IDisposable
     {
         private readonly IGLView _glView;
+        private readonly Camera _camera;
+        private readonly RenderSettings _settings;
         private readonly Action _requestRender;
 
         // Последняя позиция мыши (для вычисления dx/dy)
@@ -53,17 +56,13 @@ namespace kuber3d.Input
         private bool _lmbDown;
         private bool _rmbDown;
 
-        // Накопленные дельты управления
-        // (их будет забирать Renderer/Presenter)
-        private float _rotDx, _rotDy; // ПКМ
-        private float _panDx, _panDy; // ЛКМ
-        private float _zoomDelta;     // колесо (в "тиках" колеса)
-
         private bool _disposed;
 
-        public MouseController(IGLView glView, Action requestRender)
+        public MouseController(IGLView glView, Camera camera, RenderSettings settings, Action requestRender)
         {
             _glView = glView ?? throw new ArgumentNullException(nameof(glView));
+            _camera = camera ?? throw new ArgumentNullException(nameof(camera));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _requestRender = requestRender ?? throw new ArgumentNullException(nameof(requestRender));
 
             // Подписываемся на ввод мыши от GLView
@@ -72,69 +71,6 @@ namespace kuber3d.Input
             _glView.MouseMove += Gl_MouseMove;
             _glView.MouseWheel += Gl_MouseWheel;
             _glView.MouseEnter += Gl_MouseEnter;
-        }
-
-        // ------------------------------------------------------------
-        // Публичное API: забрать накопленные дельты (и сбросить их)
-        // ------------------------------------------------------------
-
-        /// <summary>
-        /// Забрать накопленные дельты вращения (ПКМ+drag).
-        /// Возвращает true, если есть что применять.
-        /// </summary>
-        public bool TryConsumeRotation(out float dx, out float dy)
-        {
-            dx = _rotDx;
-            dy = _rotDy;
-
-            if (dx == 0f && dy == 0f)
-                return false;
-
-            _rotDx = 0f;
-            _rotDy = 0f;
-            return true;
-        }
-
-        /// <summary>
-        /// Забрать накопленные дельты панорамирования (ЛКМ+drag).
-        /// </summary>
-        public bool TryConsumePan(out float dx, out float dy)
-        {
-            dx = _panDx;
-            dy = _panDy;
-
-            if (dx == 0f && dy == 0f)
-                return false;
-
-            _panDx = 0f;
-            _panDy = 0f;
-            return true;
-        }
-
-        /// <summary>
-        /// Забрать накопленный зум (колесо).
-        /// </summary>
-        public bool TryConsumeZoom(out float delta)
-        {
-            delta = _zoomDelta;
-
-            if (delta == 0f)
-                return false;
-
-            _zoomDelta = 0f;
-            return true;
-        }
-
-        /// <summary>
-        /// Сбросить состояние (например, при Reset камеры/сцены).
-        /// </summary>
-        public void Reset()
-        {
-            _lmbDown = false;
-            _rmbDown = false;
-            _rotDx = _rotDy = 0f;
-            _panDx = _panDy = 0f;
-            _zoomDelta = 0f;
         }
 
         // ------------------------------------------------------------
@@ -188,8 +124,7 @@ namespace kuber3d.Input
             // ПКМ: вращение (orbit)
             if (_rmbDown)
             {
-                _rotDx += dx;
-                _rotDy += dy;
+                _camera.Orbit(dx, dy, _settings.OrbitSpeed);
 
                 // Просим перерисовать — чтобы камера реагировала сразу
                 _requestRender();
@@ -199,8 +134,7 @@ namespace kuber3d.Input
             // ЛКМ: панорамирование (pan)
             if (_lmbDown)
             {
-                _panDx += dx;
-                _panDy += dy;
+                _camera.Pan(dx, dy, _settings.PanSpeed);
 
                 _requestRender();
                 return;
@@ -211,7 +145,7 @@ namespace kuber3d.Input
         {
             // e.Delta обычно кратно 120 (один "щелчок" колеса).
             // Мы копим как float, чтобы потом удобно масштабировать чувствительность.
-            _zoomDelta += e.Delta;
+            _camera.Zoom(e.Delta, _settings.ZoomSpeed);
 
             _requestRender();
         }

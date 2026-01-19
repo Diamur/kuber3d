@@ -57,6 +57,11 @@ namespace kuber3d.Presenters
         // Флаг, чтобы не стартовать второй раз
         private bool _started;
 
+        public ViewportPresenter()
+            : this(new SceneModel(), new RenderSettings(), new Camera(), new SceneRenderer())
+        {
+        }
+
         public ViewportPresenter(SceneModel scene, RenderSettings settings, Camera camera, SceneRenderer renderer)
         {
             _scene = scene;
@@ -105,6 +110,7 @@ namespace kuber3d.Presenters
 
             // 1) Инициализация камеры под текущий размер (aspect, матрица проекции)
             ApplyViewportSizeToCamera();
+            ApplyRenderSettingsToCamera();
 
             // 2) Подключаем рендерер к данным.
             // Renderer читает _settings.ShowGrid/ShowAxes и решает, рисовать ли элементы.
@@ -115,7 +121,7 @@ namespace kuber3d.Presenters
             //    - меняет _camera (orbit/pan/zoom)
             //    - просит перерисовку через RequestRender()
             _mouse = new MouseController(
-                inputSource: _glView.InputControl,     // откуда брать MouseDown/Move/Wheel
+                glView: _glView,
                 camera: _camera,
                 settings: _settings,
                 requestRender: RequestRender
@@ -179,6 +185,15 @@ namespace kuber3d.Presenters
             int h = Math.Max(1, _host.ClientSize.Height);
 
             _camera.Resize(w, h);
+        }
+
+        private void ApplyRenderSettingsToCamera()
+        {
+            _camera.FovDeg = _settings.FovDeg;
+            _camera.Near = _settings.Near;
+            _camera.Far = _settings.Far;
+            _camera.MinDistance = _settings.MinDistance;
+            _camera.MaxDistance = _settings.MaxDistance;
         }
 
         // =========================================================

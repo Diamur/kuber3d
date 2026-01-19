@@ -57,6 +57,16 @@ namespace kuber3d.Contracts
         /// </summary>
         void RequestRender();
 
+        /// <summary>
+        /// Запустить рендер (обычно таймер/loop внутри реализации).
+        /// </summary>
+        void StartRendering(IRenderer renderer);
+
+        /// <summary>
+        /// Остановить рендер.
+        /// </summary>
+        void StopRendering();
+
         // ------------------------
         // События мыши
         // ------------------------
@@ -67,5 +77,10 @@ namespace kuber3d.Contracts
         event MouseEventHandler? MouseMove;
         event MouseEventHandler? MouseWheel;
         event EventHandler? MouseEnter;
+
+        /// <summary>
+        /// Событие изменения размера вьюпорта.
+        /// </summary>
+        event EventHandler? ViewportResized;
     }
 }
