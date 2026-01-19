@@ -1,28 +1,28 @@
 // mvp/Rendering/LineShader.cs
 //
-// LineShader — минимальный шейдер для рисования линий (сетка, оси, любые отрезки).
+// LineShader вЂ” РјРёРЅРёРјР°Р»СЊРЅС‹Р№ С€РµР№РґРµСЂ РґР»СЏ СЂРёСЃРѕРІР°РЅРёСЏ Р»РёРЅРёР№ (СЃРµС‚РєР°, РѕСЃРё, Р»СЋР±С‹Рµ РѕС‚СЂРµР·РєРё).
 //
-// Почему отдельный класс:
-// - Чтобы GridRenderer/AxesRenderer не занимались компиляцией шейдеров.
-// - Чтобы один раз собрать программу и потом просто Use() + SetMvp().
+// РџРѕС‡РµРјСѓ РѕС‚РґРµР»СЊРЅС‹Р№ РєР»Р°СЃСЃ:
+// - Р§С‚РѕР±С‹ GridRenderer/AxesRenderer РЅРµ Р·Р°РЅРёРјР°Р»РёСЃСЊ РєРѕРјРїРёР»СЏС†РёРµР№ С€РµР№РґРµСЂРѕРІ.
+// - Р§С‚РѕР±С‹ РѕРґРёРЅ СЂР°Р· СЃРѕР±СЂР°С‚СЊ РїСЂРѕРіСЂР°РјРјСѓ Рё РїРѕС‚РѕРј РїСЂРѕСЃС‚Рѕ Use() + SetMvp().
 //
-// Что шейдер делает:
-// - Принимает позицию вершины (vec3) и цвет (vec4)
-// - Умножает позицию на матрицу uMvp
-// - Передаёт цвет во фрагментный шейдер
+// Р§С‚Рѕ С€РµР№РґРµСЂ РґРµР»Р°РµС‚:
+// - РџСЂРёРЅРёРјР°РµС‚ РїРѕР·РёС†РёСЋ РІРµСЂС€РёРЅС‹ (vec3) Рё С†РІРµС‚ (vec4)
+// - РЈРјРЅРѕР¶Р°РµС‚ РїРѕР·РёС†РёСЋ РЅР° РјР°С‚СЂРёС†Сѓ uMvp
+// - РџРµСЂРµРґР°С‘С‚ С†РІРµС‚ РІРѕ С„СЂР°РіРјРµРЅС‚РЅС‹Р№ С€РµР№РґРµСЂ
 //
-// MVP-минимум:
-// - один uniform: uMvp
-// - два атрибута: aPosition (location 0), aColor (location 1)
+// MVP-РјРёРЅРёРјСѓРј:
+// - РѕРґРёРЅ uniform: uMvp
+// - РґРІР° Р°С‚СЂРёР±СѓС‚Р°: aPosition (location 0), aColor (location 1)
 //
-// Важно про "LocationPosition/LocationColor":
-// - Мы фиксируем layout(location=0/1) прямо в GLSL.
-// - Тогда GridRenderer/AxesRenderer могут спокойно делать VertexAttribPointer
-//   по этим индексам без лишних запросов.
+// Р’Р°Р¶РЅРѕ РїСЂРѕ "LocationPosition/LocationColor":
+// - РњС‹ С„РёРєСЃРёСЂСѓРµРј layout(location=0/1) РїСЂСЏРјРѕ РІ GLSL.
+// - РўРѕРіРґР° GridRenderer/AxesRenderer РјРѕРіСѓС‚ СЃРїРѕРєРѕР№РЅРѕ РґРµР»Р°С‚СЊ VertexAttribPointer
+//   РїРѕ СЌС‚РёРј РёРЅРґРµРєСЃР°Рј Р±РµР· Р»РёС€РЅРёС… Р·Р°РїСЂРѕСЃРѕРІ.
 //
-// Если компиляция упала:
-// - Build() бросит исключение с текстом логов.
-// - Это удобно, чтобы сразу видеть проблему в консоли/Output.
+// Р•СЃР»Рё РєРѕРјРїРёР»СЏС†РёСЏ СѓРїР°Р»Р°:
+// - Build() Р±СЂРѕСЃРёС‚ РёСЃРєР»СЋС‡РµРЅРёРµ СЃ С‚РµРєСЃС‚РѕРј Р»РѕРіРѕРІ.
+// - Р­С‚Рѕ СѓРґРѕР±РЅРѕ, С‡С‚РѕР±С‹ СЃСЂР°Р·Сѓ РІРёРґРµС‚СЊ РїСЂРѕР±Р»РµРјСѓ РІ РєРѕРЅСЃРѕР»Рё/Output.
 
 using System;
 using OpenTK.Graphics.OpenGL4;
@@ -32,34 +32,34 @@ namespace kuber3d.Rendering
 {
     public sealed class LineShader : IDisposable
     {
-        // Индексы атрибутов (совпадают с layout(location=...)) в GLSL.
-        // GridRenderer/AxesRenderer используют их в VertexAttribPointer.
+        // РРЅРґРµРєСЃС‹ Р°С‚СЂРёР±СѓС‚РѕРІ (СЃРѕРІРїР°РґР°СЋС‚ СЃ layout(location=...)) РІ GLSL.
+        // GridRenderer/AxesRenderer РёСЃРїРѕР»СЊР·СѓСЋС‚ РёС… РІ VertexAttribPointer.
         public int LocationPosition => 0;
         public int LocationColor => 1;
 
-        // OpenGL id программы и шейдеров
+        // OpenGL id РїСЂРѕРіСЂР°РјРјС‹ Рё С€РµР№РґРµСЂРѕРІ
         private int _program;
         private int _vs;
         private int _fs;
 
-        // location uniform'а uMvp
+        // location uniform'Р° uMvp
         private int _uMvpLocation = -1;
 
         private bool _built;
         private bool _disposed;
 
         /// <summary>
-        /// Компилируем и линкуем шейдерную программу.
-        /// Вызываем один раз при старте 3D.
+        /// РљРѕРјРїРёР»РёСЂСѓРµРј Рё Р»РёРЅРєСѓРµРј С€РµР№РґРµСЂРЅСѓСЋ РїСЂРѕРіСЂР°РјРјСѓ.
+        /// Р’С‹Р·С‹РІР°РµРј РѕРґРёРЅ СЂР°Р· РїСЂРё СЃС‚Р°СЂС‚Рµ 3D.
         /// </summary>
         public void Build()
         {
             if (_built) return;
 
-            // Вершинный шейдер:
-            // - берет aPosition, aColor
-            // - умножает позицию на uMvp
-            // - передает цвет дальше
+            // Р’РµСЂС€РёРЅРЅС‹Р№ С€РµР№РґРµСЂ:
+            // - Р±РµСЂРµС‚ aPosition, aColor
+            // - СѓРјРЅРѕР¶Р°РµС‚ РїРѕР·РёС†РёСЋ РЅР° uMvp
+            // - РїРµСЂРµРґР°РµС‚ С†РІРµС‚ РґР°Р»СЊС€Рµ
             string vsSrc = @"
 #version 330 core
 
@@ -76,8 +76,8 @@ void main()
     gl_Position = uMvp * vec4(aPosition, 1.0);
 }";
 
-            // Фрагментный шейдер:
-            // - просто выводит интерполированный цвет
+            // Р¤СЂР°РіРјРµРЅС‚РЅС‹Р№ С€РµР№РґРµСЂ:
+            // - РїСЂРѕСЃС‚Рѕ РІС‹РІРѕРґРёС‚ РёРЅС‚РµСЂРїРѕР»РёСЂРѕРІР°РЅРЅС‹Р№ С†РІРµС‚
             string fsSrc = @"
 #version 330 core
 
@@ -89,18 +89,18 @@ void main()
     FragColor = vColor;
 }";
 
-            // 1) Компилируем VS/FS
+            // 1) РљРѕРјРїРёР»РёСЂСѓРµРј VS/FS
             _vs = CompileShader(ShaderType.VertexShader, vsSrc);
             _fs = CompileShader(ShaderType.FragmentShader, fsSrc);
 
-            // 2) Линкуем программу
+            // 2) Р›РёРЅРєСѓРµРј РїСЂРѕРіСЂР°РјРјСѓ
             _program = GL.CreateProgram();
             GL.AttachShader(_program, _vs);
             GL.AttachShader(_program, _fs);
 
             GL.LinkProgram(_program);
 
-            // Проверяем линковку
+            // РџСЂРѕРІРµСЂСЏРµРј Р»РёРЅРєРѕРІРєСѓ
             GL.GetProgram(_program, GetProgramParameterName.LinkStatus, out int ok);
             if (ok == 0)
             {
@@ -108,7 +108,7 @@ void main()
                 throw new InvalidOperationException($"LineShader link failed: {log}");
             }
 
-            // 3) После линковки шейдеры можно отсоединить/удалить (программа уже собрана)
+            // 3) РџРѕСЃР»Рµ Р»РёРЅРєРѕРІРєРё С€РµР№РґРµСЂС‹ РјРѕР¶РЅРѕ РѕС‚СЃРѕРµРґРёРЅРёС‚СЊ/СѓРґР°Р»РёС‚СЊ (РїСЂРѕРіСЂР°РјРјР° СѓР¶Рµ СЃРѕР±СЂР°РЅР°)
             GL.DetachShader(_program, _vs);
             GL.DetachShader(_program, _fs);
             GL.DeleteShader(_vs);
@@ -116,12 +116,12 @@ void main()
             _vs = 0;
             _fs = 0;
 
-            // 4) Находим uniform location
+            // 4) РќР°С…РѕРґРёРј uniform location
             _uMvpLocation = GL.GetUniformLocation(_program, "uMvp");
             if (_uMvpLocation < 0)
             {
-                // Не критично, но значит uniform не найден (например оптимизировался)
-                // В нашем коде он должен быть.
+                // РќРµ РєСЂРёС‚РёС‡РЅРѕ, РЅРѕ Р·РЅР°С‡РёС‚ uniform РЅРµ РЅР°Р№РґРµРЅ (РЅР°РїСЂРёРјРµСЂ РѕРїС‚РёРјРёР·РёСЂРѕРІР°Р»СЃСЏ)
+                // Р’ РЅР°С€РµРј РєРѕРґРµ РѕРЅ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ.
                 throw new InvalidOperationException("LineShader: uniform 'uMvp' not found.");
             }
 
@@ -129,7 +129,7 @@ void main()
         }
 
         /// <summary>
-        /// Активируем программу.
+        /// РђРєС‚РёРІРёСЂСѓРµРј РїСЂРѕРіСЂР°РјРјСѓ.
         /// </summary>
         public void Use()
         {
@@ -138,25 +138,25 @@ void main()
         }
 
         /// <summary>
-        /// Устанавливаем матрицу uMvp.
+        /// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РјР°С‚СЂРёС†Сѓ uMvp.
         /// </summary>
         public void SetMvp(in Matrix4 mvp)
         {
             if (!_built) throw new InvalidOperationException("LineShader: Build() must be called before SetMvp().");
 
-            // В OpenTK Matrix4 хранится в виде float[16].
-            // False => не транспонировать (OpenGL ожидает column-major).
+            // Р’ OpenTK Matrix4 С…СЂР°РЅРёС‚СЃСЏ РІ РІРёРґРµ float[16].
+            // False => РЅРµ С‚СЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°С‚СЊ (OpenGL РѕР¶РёРґР°РµС‚ column-major).
             GL.UniformMatrix4(_uMvpLocation, transpose: false, ref UnsafeAsRef(mvp));
         }
 
         /// <summary>
-        /// Вспомогательная штука: OpenTK требует ref Matrix4,
-        /// а мы держим in Matrix4 (чтобы не копировать).
+        /// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ С€С‚СѓРєР°: OpenTK С‚СЂРµР±СѓРµС‚ ref Matrix4,
+        /// Р° РјС‹ РґРµСЂР¶РёРј in Matrix4 (С‡С‚РѕР±С‹ РЅРµ РєРѕРїРёСЂРѕРІР°С‚СЊ).
         /// </summary>
         private static ref Matrix4 UnsafeAsRef(in Matrix4 m)
         {
-            // Безопасно в контексте вызова UniformMatrix4,
-            // т.к. Matrix4 — struct и живёт на стеке вызывающего метода.
+            // Р‘РµР·РѕРїР°СЃРЅРѕ РІ РєРѕРЅС‚РµРєСЃС‚Рµ РІС‹Р·РѕРІР° UniformMatrix4,
+            // С‚.Рє. Matrix4 вЂ” struct Рё Р¶РёРІС‘С‚ РЅР° СЃС‚РµРєРµ РІС‹Р·С‹РІР°СЋС‰РµРіРѕ РјРµС‚РѕРґР°.
             return ref System.Runtime.CompilerServices.Unsafe.AsRef(in m);
         }
 
@@ -188,7 +188,7 @@ void main()
                 _program = 0;
             }
 
-            // На всякий случай (если Build не дошел до удаления)
+            // РќР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№ (РµСЃР»Рё Build РЅРµ РґРѕС€РµР» РґРѕ СѓРґР°Р»РµРЅРёСЏ)
             if (_vs != 0) { GL.DeleteShader(_vs); _vs = 0; }
             if (_fs != 0) { GL.DeleteShader(_fs); _fs = 0; }
 
