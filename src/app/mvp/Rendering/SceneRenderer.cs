@@ -102,6 +102,7 @@ namespace kuber3d.Rendering
             if (_camera == null || _scene == null || _settings == null)
                 throw new InvalidOperationException("SceneRenderer: Bind(camera, scene, settings) must be called before Init().");
 
+            Log.Info($"SceneRenderer.Init: size={width}x{height}.");
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
             GL.Enable(EnableCap.LineSmooth);
@@ -133,6 +134,7 @@ namespace kuber3d.Rendering
             if (width <= 0) width = 1;
             if (height <= 0) height = 1;
 
+            Log.Info($"SceneRenderer.Resize: size={width}x{height}.");
             _camera.Resize(width, height);
             GL.Viewport(0, 0, width, height);
         }
@@ -143,6 +145,7 @@ namespace kuber3d.Rendering
         /// </summary>
         public void Render()
         {
+            Log.Info("SceneRenderer.Render: begin.");
             GL.ClearColor(0.08f, 0.08f, 0.10f, 1f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.DepthTest);

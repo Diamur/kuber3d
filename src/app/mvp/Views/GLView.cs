@@ -15,6 +15,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using kuber3d.Contracts;
+using kuber3d.Core;
 
 // OpenTK WinForms GLControl
 using OpenTK.WinForms;
@@ -78,7 +79,7 @@ namespace kuber3d.Views
         /// Реальный WinForms-контрол (по контракту IGLView).
         /// Его встраивают в pnlViewport.
         /// </summary>
-        public Control Control => _gl;
+        public Control Control => this;
 
         /// <summary>
         /// Доп. удобство для твоих Presenter-ов: контрол, который принимает ввод.
@@ -144,8 +145,7 @@ namespace kuber3d.Views
         /// </summary>
         public void MakeCurrent()
         {
-            try { _gl.MakeCurrent(); }
-            catch { /* MVP: не падаем */ }
+            _gl.MakeCurrent();
         }
 
         /// <summary>
@@ -153,8 +153,7 @@ namespace kuber3d.Views
         /// </summary>
         public void SwapBuffers()
         {
-            try { _gl.SwapBuffers(); }
-            catch { /* MVP: не падаем */ }
+            _gl.SwapBuffers();
         }
 
         /// <summary>
@@ -164,15 +163,8 @@ namespace kuber3d.Views
         {
             if (width <= 0 || height <= 0) return;
 
-            try
-            {
-                MakeCurrent();
-                GL.Viewport(0, 0, width, height);
-            }
-            catch
-            {
-                // MVP: не падаем
-            }
+            MakeCurrent();
+            GL.Viewport(0, 0, width, height);
         }
 
         // =========================
@@ -199,6 +191,7 @@ namespace kuber3d.Views
         public void StartRendering(IRenderer renderer)
         {
             _renderer = renderer;
+            Log.Info("GLView.StartRendering: renderer assigned.");
 
             // ВАЖНО:
             // GLControl.Load может сработать ДО того, как Presenter вызовет StartRendering().
@@ -209,6 +202,7 @@ namespace kuber3d.Views
                 try
                 {
                     // На всякий случай делаем контекст текущим перед Init.
+                    Log.Info("GLView.StartRendering: MakeCurrent before Init.");
                     MakeCurrent();
 
                     // Инициализируем рендерер так же "безопасно", как в Load
@@ -252,6 +246,7 @@ namespace kuber3d.Views
             if (_renderer == null) return;
 
             // Invalidate => Paint => Render
+            Log.Info("GLView.RequestRender: invalidating GLControl.");
             _gl.Invalidate();
         }
 
@@ -270,6 +265,9 @@ namespace kuber3d.Views
         private void OnGlLoad(object? sender, EventArgs e)
         {
             _isLoaded = true;		
+
+            Log.Info("GLView.OnGlLoad: control loaded, making context current.");
+            MakeCurrent();
 	
             // Контекст уже создан — можно инициализировать рендерер.
             // В разных версиях интерфейса IRenderer сигнатуры могут отличаться,
@@ -284,6 +282,7 @@ namespace kuber3d.Views
             if (_renderer != null)
             {
                 _isRendering = true;
+                Log.Info("GLView.OnGlLoad: starting render timer.");
                 _timer.Start();
             }
 
@@ -296,6 +295,7 @@ namespace kuber3d.Views
 
             var w = _gl.ClientSize.Width;
             var h = _gl.ClientSize.Height;
+            Log.Info($"GLView.OnGlResize: size={w}x{h}.");
 
             // Сообщаем миру, что размер поменялся (Presenter обновит камеру Aspect)
             ViewportResized?.Invoke(this, EventArgs.Empty);
@@ -315,6 +315,7 @@ namespace kuber3d.Views
             if (_renderer == null) return;
 
             // Делаем контекст текущим и выставляем viewport
+            Log.Info("GLView.OnGlPaint: MakeCurrent + Render.");
             MakeCurrent();
 
             var w = _gl.ClientSize.Width;
