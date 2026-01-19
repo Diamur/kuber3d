@@ -78,7 +78,7 @@ namespace kuber3d.Views
         /// Реальный WinForms-контрол (по контракту IGLView).
         /// Его встраивают в pnlViewport.
         /// </summary>
-        public Control Control => _gl;
+        public Control Control => this;
 
         /// <summary>
         /// Доп. удобство для твоих Presenter-ов: контрол, который принимает ввод.
